@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify AI Recommender — Intelligent Music Discovery</title>
+  <meta name="description" content="Spotify-powered ML Music Recommendation System based on 14 acoustic dimensions and cosine similarity across 157,000+ tracks.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231DB954'><path d='M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z'/></svg>">
+</head>
+<body>
+  <div class="app-layout" id="appLayout">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <svg class="spotify-brand-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/>
+        </svg>
+        <span class="brand-text">Spotify <span class="brand-accent">ML</span></span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="navHomeBtn" onclick="switchView('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Home</span>
+        </button>
+
+        <button class="nav-item" id="navSearchBtn" onclick="focusSearch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Search</span>
+        </button>
+
+        <button class="nav-item" id="navBlendBtn" onclick="switchView('blend')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          <span>Taste Blend</span>
+          <span class="nav-badge" id="blendCountBadge">0</span>
+        </button>
+
+        <button class="nav-item" id="navLikedBtn" onclick="switchView('liked')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <span>Liked Songs</span>
+          <span class="nav-badge liked-badge" id="likedCountBadge">0</span>
+        </button>
+
+        <button class="nav-item" id="navRadarBtn" onclick="switchView('radar')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <span>Model Analytics</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Quick Seed Queue / Blend Drawer -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <span class="section-title">BLEND BASKET</span>
+          <button class="clear-btn" onclick="clearBlendBasket()" title="Clear basket">Clear</button>
+        </div>
+        <div class="blend-basket-list" id="blendBasketList">
+          <div class="basket-empty-msg">Add tracks to blend taste vectors</div>
+        </div>
+        <button class="btn-blend-action" id="btnRunBlend" onclick="runBlendRecommendation()" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
+          Generate Blend
+        </button>
+      </div>
+
+      <!-- Model Spec Card -->
+      <div class="sidebar-model-info">
+        <div class="model-info-header">
+          <span class="status-dot"></span>
+          <span>k-NN Cosine Model</span>
+        </div>
+        <div class="model-stat-grid">
+          <div><span class="stat-num" id="statSongs">157.5K</span><span class="stat-label">Tracks</span></div>
+          <div><span class="stat-num" id="statDims">14D</span><span class="stat-label">Features</span></div>
+          <div><span class="stat-num">Brute</span><span class="stat-label">Metric</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN STAGE -->
+    <main class="main-content" id="mainContent">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-nav" id="topNav">
+        <div class="nav-arrows">
+          <button class="arrow-btn" onclick="window.history.back()" title="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="arrow-btn" onclick="window.history.forward()" title="Go forward">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- SEARCH INPUT WITH LIVE AUTOCOMPLETE -->
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search from 157,000+ tracks, artists, or albums..." 
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;">✕</button>
+
+          <!-- DROPDOWN AUTOCOMPLETE -->
+          <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+
+        <div class="top-nav-actions">
+          <div class="model-badge-pill" title="Pre-trained Cosine Similarity Nearest Neighbors Engine">
+            <span class="pulse-indicator"></span>
+            <span>k-NN Engine Online</span>
+          </div>
+          <button class="btn-spotify-embed-nav" onclick="toggleSpotifyEmbed()" title="Toggle Official Spotify Mini-Player">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+            <span>Spotify Player</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- SCROLLABLE CONTENT BODY -->
+      <div class="content-scrollable" id="contentScrollable">
+
+        <!-- VIEW: HOME / DISCOVER -->
+        <section class="view-section active" id="viewHome">
+          <!-- HERO BANNER -->
+          <div class="hero-banner" id="heroBanner">
+            <div class="hero-gradient-overlay"></div>
+            <div class="hero-content">
+              <span class="hero-tag">AI-POWERED AUDIO TWIN DISCOVERY</span>
+              <h1 class="hero-title" id="greetingText">Good evening</h1>
+              <p class="hero-subtitle">
+                Select any track to compute cosine vectors across 14 high-dimensional audio traits. Discover acoustic twins with laboratory precision.
+              </p>
+              <div class="hero-buttons">
+                <button class="btn-primary" onclick="recommendById('0VjIjW4GlUZAMYd2vXMi3b')">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Recommend "Blinding Lights"</span>
+                </button>
+                <button class="btn-secondary" onclick="recommendRandom()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span>Surprise Me</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Waveform Animation -->
+            <div class="hero-visualizer" aria-hidden="true">
+              <div class="bar bar-1"></div>
+              <div class="bar bar-2"></div>
+              <div class="bar bar-3"></div>
+              <div class="bar bar-4"></div>
+              <div class="bar bar-5"></div>
+              <div class="bar bar-6"></div>
+              <div class="bar bar-7"></div>
+              <div class="bar bar-8"></div>
+              <div class="bar bar-9"></div>
+              <div class="bar bar-10"></div>
+            </div>
+          </div>
+
+          <!-- MOOD / VIBE QUICK FILTER CHIPS -->
+          <div class="filter-chips-container">
+            <button class="filter-chip active" onclick="filterPresets('all', this)">All Featured</button>
+            <button class="filter-chip" onclick="filterPresets('high_energy', this)">⚡ High Energy</button>
+            <button class="filter-chip" onclick="filterPresets('chill', this)">🌿 Chill & Acoustic</button>
+            <button class="filter-chip" onclick="filterPresets('dance', this)">🕺 Dance & Groove</button>
+            <button class="filter-chip" onclick="filterPresets('classics', this)">🎸 All-Time Classics</button>
+            <button class="filter-chip" onclick="filterPresets('happy', this)">☀️ Pure Euphoria</button>
+          </div>
+
+          <!-- SECTION: FEATURED PRESET TRACKS -->
+          <div class="shelf-section">
+            <div class="shelf-header">
+              <div>
+                <h2 class="shelf-title">Popular Seed Tracks</h2>
+                <p class="shelf-sub">Click any card to find nearest acoustic neighbors</p>
+              </div>
+            </div>
+            <div class="track-grid" id="presetTrackGrid">
+              <!-- Dynamically populated via JS -->
+              <div class="grid-skeleton">Loading tracks...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: RECOMMENDATIONS RESULT -->
+        <section class="view-section" id="viewRecommendations">
+          
+          <!-- SEED TRACK HERO WITH 2-SONG SPIDER RADAR COMPARISON -->
+          <div class="seed-hero-card" id="seedHeroCard">
+            <div class="seed-hero-cover" id="seedHeroCover">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            
+            <div class="seed-hero-info">
+              <span class="seed-badge">SOURCE SEED TRACK</span>
+              <h2 class="seed-title" id="seedTitle">—</h2>
+              <p class="seed-artist" id="seedArtist">—</p>
+              <div class="seed-meta-pills" id="seedMetaPills">
+                <!-- Pills populated via JS -->
+              </div>
+              <div class="seed-actions-inline">
+                <button class="btn-play-seed" id="btnPlaySeed" onclick="playSeedSong()">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Play Preview</span>
+                </button>
+                <button class="btn-add-blend-seed" id="btnAddSeedBlend" onclick="addCurrentSeedToBlend()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Add to Blend</span>
+                </button>
+                <button class="btn-spotify-mini" id="btnOpenSeedEmbed" onclick="openSpotifyEmbedForCurrentSeed()" title="Play in Official Spotify Embed">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+                  <span>Spotify Embed</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- FEATURE 1: 2-SONG INTERACTIVE SPIDER/RADAR COMPARISON CHART -->
+            <div class="radar-interactive-box">
+              <div class="radar-box-header">
+                <span class="radar-box-title">14D ACOUSTIC RADAR</span>
+                <div class="radar-legend">
+                  <span class="legend-item"><span class="legend-dot dot-seed"></span> Seed</span>
+                  <span class="legend-item"><span class="legend-dot dot-comp"></span> <span id="radarCompLabel">Match (Hover)</span></span>
+                </div>
+              </div>
+
+              <!-- SVG Radar Spider Canvas/Graphic -->
+              <div class="radar-svg-wrapper">
+                <svg id="radarSvg" viewBox="0 0 280 230" class="radar-svg">
+                  <!-- Background grid polygons and axis lines rendered via JS -->
+                </svg>
+              </div>
+              <div class="radar-comparison-insight" id="radarInsight">
+                Hover over any recommended song below to compare vector overlap in real time.
+              </div>
+            </div>
+          </div>
+
+          <!-- FEATURE 2: VIBE TUNER / PARAMETRIC FILTER SLIDERS -->
+          <div class="vibe-tuner-card" id="vibeTunerCard">
+            <div class="vibe-tuner-header" onclick="toggleVibeTuner()">
+              <div class="vibe-tuner-title-group">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                <div class="vibe-tuner-titles">
+                  <h4>Vibe Tuner — Parametric Vector Discovery</h4>
+                  <p>Fine-tune energy, mood, groove, and acousticness to re-weight recommendations</p>
+                </div>
+              </div>
+              <div class="vibe-tuner-toggle-wrap">
+                <span class="vibe-badge" id="vibeBadge">Standard Mode</span>
+                <button class="vibe-tuner-btn" id="vibeTunerToggleBtn">Customize Vibe ▾</button>
+              </div>
+            </div>
+
+            <div class="vibe-tuner-body" id="vibeTunerBody" style="display: none;">
+              <div class="vibe-sliders-grid">
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>⚡ Energy</span>
+                    <span class="slider-val" id="valTuneEnergy">0.70</span>
+                  </div>
+                  <input type="range" id="slideEnergy" min="0" max="100" value="70" class="vibe-slider" oninput="updateTuneSlider('energy', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>🕺 Danceability</span>
+                    <span class="slider-val" id="valTuneDance">0.65</span>
+                  </div>
+                  <input type="range" id="slideDance" min="0" max="100" value="65" class="vibe-slider" oninput="updateTuneSlider('danceability', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>☀️ Mood / Valence</span>
+                    <span class="slider-val" id="valTuneValence">0.50</span>
+                  </div>
+                  <input type="range" id="slideValence" min="0" max="100" value="50" class="vibe-slider" oninput="updateTuneSlider('valence', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>🌿 Acousticness</span>
+                    <span class="slider-val" id="valTuneAcoustic">0.20</span>
+                  </div>
+                  <input type="range" id="slideAcoustic" min="0" max="100" value="20" class="vibe-slider" oninput="updateTuneSlider('acousticness', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>🥁 Target Tempo (BPM)</span>
+                    <span class="slider-val" id="valTuneTempo">120 BPM</span>
+                  </div>
+                  <input type="range" id="slideTempo" min="60" max="190" value="120" class="vibe-slider" oninput="updateTuneSlider('tempo', this.value)">
+                </div>
+              </div>
+
+              <div class="vibe-actions-row">
+                <button class="btn-apply-tune" onclick="applyVibeTuning()">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Apply Vector Shift & Query</span>
+                </button>
+                <button class="btn-reset-tune" onclick="resetVibeTuner()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span>Reset to Seed Values</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECOMMENDATIONS LIST / GRID -->
+          <div class="recommendations-container">
+            <div class="recommendations-header">
+              <div>
+                <h3 class="rec-section-title">Acoustic Matches Ranked by Cosine Proximity</h3>
+                <p class="rec-section-sub">Normalized across 14 traits: valence, danceability, energy, loudness, tempo, acousticness, & more</p>
+              </div>
+              
+              <div class="rec-header-actions">
+                <div class="rec-count-pill" id="recCountPill">12 Recommendations</div>
+                
+                <!-- FEATURE 5: EXPORT PLAYLIST DROPDOWN -->
+                <div class="export-dropdown-wrapper">
+                  <button class="btn-export-trigger" onclick="toggleExportMenu('rec')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export Playlist</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <div class="export-menu-dropdown" id="exportMenuRec">
+                    <button class="export-item" onclick="copySpotifyUrls('rec')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      <span>Copy Spotify URLs</span>
+                    </button>
+                    <button class="export-item" onclick="downloadCSV('rec')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      <span>Download CSV Spreadsheet</span>
+                    </button>
+                    <button class="export-item" onclick="downloadM3U('rec')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                      <span>Download M3U8 Playlist</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TABLE OF RECOMMENDATIONS -->
+            <div class="rec-table-wrap">
+              <table class="rec-table">
+                <thead>
+                  <tr>
+                    <th class="th-num">#</th>
+                    <th class="th-title">TITLE</th>
+                    <th class="th-match">SIMILARITY MATCH</th>
+                    <th class="th-energy">ENERGY & MOOD</th>
+                    <th class="th-tempo">BPM</th>
+                    <th class="th-pop">POPULARITY</th>
+                    <th class="th-actions">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody id="recommendationsTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: TASTE BLEND -->
+        <section class="view-section" id="viewBlend">
+          <div class="blend-hero-banner">
+            <div class="blend-hero-text">
+              <span class="hero-tag">VECTOR CENTROID BLEND</span>
+              <h2 class="blend-title">Create a Multi-Song Taste Blend</h2>
+              <p class="blend-desc">Add 2 to 5 tracks with different styles. Our algorithm calculates the high-dimensional mean taste vector and queries the nearest unlistened neighbors in 14-dimensional Euclidean-cosine space.</p>
+            </div>
+          </div>
+
+          <div class="blend-builder-grid">
+            <div class="blend-seeds-box">
+              <div class="blend-box-header">
+                <h3>Selected Seed Tracks (<span id="blendBasketCount">0</span>/5)</h3>
+                <button class="btn-sm" onclick="clearBlendBasket()">Reset All</button>
+              </div>
+              <div class="blend-seeds-container" id="blendSeedsContainer">
+                <div class="empty-blend-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="48" height="48"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                  <p>Your blend basket is empty.</p>
+                  <span>Search for any song or click "+ Blend" on any song card to add seeds here.</span>
+                </div>
+              </div>
+              <button class="btn-execute-blend" id="btnExecuteBlendLarge" onclick="runBlendRecommendation()" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+                <span>Calculate & Generate Blended Playlist</span>
+              </button>
+            </div>
+
+            <div class="blend-preset-suggestions">
+              <h3>Quick Blend Ideas</h3>
+              <div class="quick-blend-card" onclick="loadBlendPreset('pop_rock')">
+                <div class="quick-blend-icon">⚡</div>
+                <div>
+                  <h4>Pop Meets Classic Rock</h4>
+                  <p>Blinding Lights + Bohemian Rhapsody</p>
+                </div>
+              </div>
+              <div class="quick-blend-card" onclick="loadBlendPreset('dance_chill')">
+                <div class="quick-blend-icon">🌊</div>
+                <div>
+                  <h4>Chill Groove Synthesis</h4>
+                  <p>Sunflower + Let Her Go + Get Lucky</p>
+                </div>
+              </div>
+              <div class="quick-blend-card" onclick="loadBlendPreset('high_voltage')">
+                <div class="quick-blend-icon">🔥</div>
+                <div>
+                  <h4>High Energy Workout</h4>
+                  <p>Believer + Dynamite + Smells Like Teen Spirit</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blend-results-section" id="blendResultsSection" style="display:none;">
+            <div class="shelf-header">
+              <div>
+                <h3 class="shelf-title">Blended Recommendations</h3>
+                <p class="shelf-sub">Harmonized across your combined taste preferences</p>
+              </div>
+
+              <!-- Export Playlist Trigger for Blend -->
+              <div class="export-dropdown-wrapper">
+                <button class="btn-export-trigger" onclick="toggleExportMenu('blend')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Export Blend</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="export-menu-dropdown" id="exportMenuBlend">
+                  <button class="export-item" onclick="copySpotifyUrls('blend')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Spotify URLs</span>
+                  </button>
+                  <button class="export-item" onclick="downloadCSV('blend')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Download CSV Spreadsheet</span>
+                  </button>
+                  <button class="export-item" onclick="downloadM3U('blend')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                    <span>Download M3U8 Playlist</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="rec-table-wrap">
+              <table class="rec-table">
+                <thead>
+                  <tr>
+                    <th class="th-num">#</th>
+                    <th class="th-title">TITLE</th>
+                    <th class="th-match">SIMILARITY MATCH</th>
+                    <th class="th-energy">ENERGY & MOOD</th>
+                    <th class="th-tempo">BPM</th>
+                    <th class="th-pop">POPULARITY</th>
+                    <th class="th-actions">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody id="blendTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: LIKED SONGS -->
+        <section class="view-section" id="viewLiked">
+          <div class="liked-hero">
+            <div class="liked-heart-box">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="56" height="56"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div>
+              <span class="hero-tag">PLAYLIST</span>
+              <h1 class="liked-title">Liked Songs</h1>
+              <p class="liked-meta"><span id="likedCountText">0 songs</span> • Saved in your local browser storage</p>
+            </div>
+          </div>
+          <div class="liked-actions-bar">
+            <button class="btn-blend-liked" onclick="blendAllLiked()" id="btnBlendLiked">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
+              <span>Blend All Liked Tracks</span>
+            </button>
+            <button class="btn-clear-liked" onclick="clearAllLiked()">Clear All</button>
+          </div>
+          <div class="liked-list-wrap">
+            <div class="track-grid" id="likedGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: MODEL RADAR / ANALYTICS -->
+        <section class="view-section" id="viewRadar">
+          <div class="radar-hero">
+            <span class="hero-tag">MACHINE LEARNING ARCHITECTURE</span>
+            <h2 class="shelf-title">Audio Feature Vector Space</h2>
+            <p class="shelf-sub">Understand how our unsupervised k-NN model computes distance in Spotify's audio dimension matrix</p>
+          </div>
+
+          <div class="radar-grid">
+            <div class="radar-card">
+              <h3>14 Audio Dimensions</h3>
+              <p>Each track is mapped into a 14-dimensional continuous space and normalized with <code>StandardScaler</code> to eliminate scale biases.</p>
+              <ul class="dimension-list">
+                <li><strong>Acousticness:</strong> Confidence measure of whether the track is acoustic (0.0 to 1.0).</li>
+                <li><strong>Danceability:</strong> How suitable a track is for dancing based on tempo, rhythm stability, beat strength.</li>
+                <li><strong>Energy:</strong> Perceptual measure of intensity, activity, dynamic range, and timbre.</li>
+                <li><strong>Valence:</strong> Musical positiveness. High valence sounds happy/cheerful, low sounds sad/angry.</li>
+                <li><strong>Instrumentalness:</strong> Predicts whether a track contains no vocals.</li>
+                <li><strong>Liveness:</strong> Detects presence of an audience in the recording.</li>
+                <li><strong>Speechiness:</strong> Detects presence of spoken words.</li>
+                <li><strong>Tempo:</strong> Overall estimated tempo of a track in beats per minute (BPM).</li>
+                <li><strong>Loudness:</strong> Overall loudness in decibels (dB).</li>
+                <li><strong>Popularity:</strong> Spotify popularity index (0 to 100).</li>
+              </ul>
+            </div>
+
+            <div class="radar-card">
+              <h3>Algorithm: Cosine Proximity</h3>
+              <div class="math-box">
+                <code>Similarity(u, v) = 1 - CosineDistance(u, v) = (u • v) / (||u|| ||v||)</code>
+              </div>
+              <p>By computing brute-force Cosine Metric over 157,519 standardized feature rows, query execution resolves in sub-15ms with zero distortion.</p>
+              
+              <div class="feature-stats-card">
+                <h4>System Metrics</h4>
+                <div class="mini-stat-row"><span>Indexed Library:</span> <strong>157,519 tracks</strong></div>
+                <div class="mini-stat-row"><span>Historical Range:</span> <strong>1921 — 2020</strong></div>
+                <div class="mini-stat-row"><span>Distance Metric:</span> <strong>Cosine Similarity</strong></div>
+                <div class="mini-stat-row"><span>Standardization:</span> <strong>Zero Mean, Unit Variance</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- FEATURE 3: DOCKABLE OFFICIAL SPOTIFY MINI-PLAYER DRAWER -->
+    <div class="spotify-embed-dock" id="spotifyEmbedDock">
+      <div class="embed-dock-header">
+        <div class="embed-dock-title">
+          <svg viewBox="0 0 24 24" fill="var(--spotify-green)" width="18" height="18"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+          <span>Official Spotify Player</span>
+        </div>
+        <button class="embed-dock-close" onclick="closeSpotifyEmbed()">✕</button>
+      </div>
+      <div class="embed-iframe-wrap">
+        <iframe id="spotifyEmbedIframe" src="" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <!-- BOTTOM SPOTIFY WEB PLAYER BAR -->
+    <footer class="player-bar" id="playerBar">
+      <!-- Left: Track info -->
+      <div class="player-left">
+        <div class="player-cover" id="playerCover" style="background: linear-gradient(135deg, #1DB954, #191414);">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </div>
+        <div class="player-track-info">
+          <div class="player-title" id="playerTitle">Blinding Lights</div>
+          <div class="player-artist" id="playerArtist">The Weeknd</div>
+        </div>
+        <button class="player-heart-btn" id="playerHeartBtn" onclick="toggleLikeCurrent()" title="Save to Liked Songs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </button>
+      </div>
+
+      <!-- Center: Controls & Scrubber -->
+      <div class="player-center">
+        <div class="player-controls">
+          <button class="ctrl-btn" id="ctrlShuffle" onclick="toggleShuffle()" title="Shuffle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+          </button>
+          <button class="ctrl-btn" onclick="playPrev()" title="Previous track">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2.5"></line></svg>
+          </button>
+          <button class="ctrl-play-btn" id="ctrlPlayBtn" onclick="togglePlayPause()" title="Play / Pause">
+            <svg id="ctrlPlayIcon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="ctrlPauseIcon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          </button>
+          <button class="ctrl-btn" onclick="playNext()" title="Next track">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line></svg>
+          </button>
+          <button class="ctrl-btn" id="ctrlRepeat" onclick="toggleRepeat()" title="Repeat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+          </button>
+        </div>
+
+        <div class="player-progress-row">
+          <span class="time-label" id="timeCurrent">0:00</span>
+          <div class="progress-bar-container" id="progressBarContainer" onclick="seekAudio(event)">
+            <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
+          <span class="time-label" id="timeTotal">3:20</span>
+        </div>
+      </div>
+
+      <!-- Right: Extras, Canvas Spectrum & Spotify Embed Button -->
+      <div class="player-right">
+        <!-- FEATURE 4: LIVE HTML5 CANVAS AUDIO SPECTRUM VISUALIZER -->
+        <canvas id="audioVisualizerCanvas" class="audio-spectrum-canvas" width="120" height="26" title="Live Web Audio Frequency Spectrum"></canvas>
+
+        <button class="btn-toggle-embed" onclick="toggleSpotifyEmbed()" title="Toggle Official Spotify Mini-Player">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+          <span>Embed Player</span>
+        </button>
+
+        <a href="https://open.spotify.com" target="_blank" rel="noopener noreferrer" class="btn-spotify-external" id="btnSpotifyExternal" title="Listen on official Spotify">
+          <span>Spotify</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+
+        <div class="volume-container">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" oninput="setAudioVolume(this.value)">
+        </div>
+      </div>
+    </footer>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
