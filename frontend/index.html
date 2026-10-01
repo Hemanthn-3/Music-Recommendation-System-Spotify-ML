@@ -1,0 +1,4399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify ML — Intelligent Music Discovery</title>
+  <meta name="description" content="Spotify-powered ML Music Recommendation System based on 14 acoustic dimensions and cosine similarity across 157,000+ tracks.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <style>
+/* ==========================================================================
+   SPOTIFY AI RECOMMENDER — DESIGN SYSTEM
+   Modern Dark Theme with Glassmorphism, Micro-animations & Authentic Spotify Vibe
+   ========================================================================== */
+
+:root {
+  --spotify-green: #1db954;
+  --spotify-green-hover: #1ed760;
+  --spotify-green-active: #169c46;
+  --spotify-green-glow: rgba(29, 185, 84, 0.35);
+
+  --bg-black: #000000;
+  --bg-base: #121212;
+  --bg-surface: #181818;
+  --bg-surface-elevated: #242424;
+  --bg-surface-hover: #2a2a2a;
+  --bg-highlight: #333333;
+
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-subdued: #727272;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(255, 255, 255, 0.2);
+
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --sidebar-width: 280px;
+  --player-height: 90px;
+  --top-nav-height: 64px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Reset & Box Sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-main);
+  background-color: var(--bg-black);
+  color: var(--text-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ==========================================================================
+   APP GRID LAYOUT
+   ========================================================================== */
+.app-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: 1fr var(--player-height);
+  grid-template-areas:
+    "sidebar main"
+    "player player";
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-black);
+  padding: 8px 8px 0 8px;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   SIDEBAR
+   ========================================================================== */
+.sidebar {
+  grid-area: sidebar;
+  background-color: var(--bg-base);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  overflow: hidden;
+  user-select: none;
+  border: 1px solid var(--border-subtle);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 20px 8px;
+  color: var(--text-primary);
+}
+.spotify-brand-icon {
+  width: 36px;
+  height: 36px;
+  color: var(--spotify-green);
+  filter: drop-shadow(0 0 12px var(--spotify-green-glow));
+}
+.brand-text {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.brand-accent {
+  color: var(--spotify-green);
+  font-weight: 900;
+  background: linear-gradient(135deg, #1ed760, #a8ff78);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Navigation List */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
+}
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+.nav-item:hover {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.nav-item:hover svg {
+  transform: scale(1.1);
+}
+.nav-item.active {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.nav-item.active svg {
+  color: var(--spotify-green);
+}
+.nav-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+}
+.nav-badge.liked-badge {
+  background-color: rgba(29, 185, 84, 0.2);
+  color: var(--spotify-green);
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--border-subtle);
+  margin: 16px 0;
+}
+
+/* Blend Basket Drawer */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 12px;
+}
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 10px 8px;
+}
+.section-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-subdued);
+}
+.clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-subdued);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+.clear-btn:hover {
+  color: var(--text-primary);
+}
+
+.blend-basket-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+.basket-empty-msg {
+  color: var(--text-subdued);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 20px 10px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.basket-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  animation: fadeIn 0.25s ease;
+}
+.basket-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.basket-item-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.basket-item-artist {
+  font-size: 0.72rem;
+  color: var(--text-subdued);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.basket-item-remove {
+  background: none;
+  border: none;
+  color: var(--text-subdued);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.basket-item-remove:hover {
+  color: #ff5555;
+  background-color: rgba(255, 85, 85, 0.1);
+}
+
+.btn-blend-action {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  background: var(--spotify-green);
+  color: var(--bg-black);
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-blend-action:hover:not(:disabled) {
+  background: var(--spotify-green-hover);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px var(--spotify-green-glow);
+}
+.btn-blend-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* Sidebar Model Info Card */
+.sidebar-model-info {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+.model-info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--spotify-green);
+  box-shadow: 0 0 8px var(--spotify-green);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+.model-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+.stat-num {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+.stat-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-subdued);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   MAIN CONTENT STAGE
+   ========================================================================== */
+.main-content {
+  grid-area: main;
+  background: linear-gradient(180deg, #1b1b1b 0%, var(--bg-base) 280px);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Top Navigation Bar */
+.top-nav {
+  height: var(--top-nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background-color: rgba(18, 18, 18, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.nav-arrows {
+  display: flex;
+  gap: 8px;
+}
+.arrow-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.arrow-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.arrow-btn:hover {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+/* Search Bar with Autocomplete Dropdown */
+.search-container {
+  position: relative;
+  flex: 1;
+  max-width: 520px;
+  margin: 0 20px;
+}
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 44px;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+.search-input:focus {
+  background-color: var(--bg-surface-hover);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.4);
+}
+.search-input::placeholder {
+  color: var(--text-subdued);
+}
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Autocomplete Dropdown */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background-color: #202020;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-active);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+  max-height: 420px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  animation: fadeIn 0.15s ease;
+}
+.search-dropdown.open {
+  display: block;
+}
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.search-item:last-child {
+  border-bottom: none;
+}
+.search-item:hover, .search-item.highlighted {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.search-item-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.search-item-details {
+  flex: 1;
+  min-width: 0;
+}
+.search-item-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-item-sub {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.search-item-year {
+  font-size: 0.75rem;
+  color: var(--text-subdued);
+  font-family: var(--font-mono);
+}
+.pop-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background-color: rgba(29, 185, 84, 0.15);
+  color: var(--spotify-green);
+}
+
+/* Top Nav Right Actions */
+.top-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.model-badge-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(29, 185, 84, 0.1);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--spotify-green);
+}
+.pulse-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--spotify-green);
+  box-shadow: 0 0 8px var(--spotify-green);
+  animation: pulseDot 1.5s infinite;
+}
+.spotify-account-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff;
+  color: #000;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+.spotify-account-btn:hover {
+  transform: scale(1.05);
+  background-color: #f0f0f0;
+}
+
+/* ==========================================================================
+   SCROLLABLE CONTENT SECTIONS
+   ========================================================================== */
+.content-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.view-section {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+.view-section.active {
+  display: block;
+}
+
+/* ==========================================================================
+   HERO BANNER
+   ========================================================================== */
+.hero-banner {
+  position: relative;
+  min-height: 240px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  padding: 36px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  background: radial-gradient(circle at 10% 20%, rgba(29, 185, 84, 0.35) 0%, rgba(18, 18, 18, 0.95) 75%);
+  border: 1px solid rgba(29, 185, 84, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+}
+.hero-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--spotify-green);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.hero-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  line-height: 1.1;
+}
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background-color: var(--spotify-green);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-primary:hover {
+  background-color: var(--spotify-green-hover);
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px var(--spotify-green-glow);
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.03);
+}
+
+/* Sound Waveform Animation */
+.hero-visualizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 120px;
+  padding-right: 20px;
+}
+.hero-visualizer .bar {
+  width: 6px;
+  background: linear-gradient(180deg, var(--spotify-green) 0%, rgba(29, 185, 84, 0.2) 100%);
+  border-radius: 4px;
+  animation: wave 1.2s ease-in-out infinite alternate;
+}
+.bar-1 { height: 35%; animation-delay: 0.1s; }
+.bar-2 { height: 80%; animation-delay: 0.3s; }
+.bar-3 { height: 50%; animation-delay: 0.2s; }
+.bar-4 { height: 95%; animation-delay: 0.5s; }
+.bar-5 { height: 60%; animation-delay: 0.4s; }
+.bar-6 { height: 100%; animation-delay: 0.6s; }
+.bar-7 { height: 45%; animation-delay: 0.2s; }
+.bar-8 { height: 75%; animation-delay: 0.4s; }
+.bar-9 { height: 90%; animation-delay: 0.7s; }
+.bar-10 { height: 40%; animation-delay: 0.3s; }
+
+/* Filter Chips */
+.filter-chips-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.filter-chip {
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+.filter-chip:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+.filter-chip.active {
+  background-color: var(--text-primary);
+  color: var(--bg-black);
+}
+
+/* Shelves & Grid */
+.shelf-section {
+  margin-bottom: 32px;
+}
+.shelf-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.shelf-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.shelf-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+/* Card Styling (Spotify Exact Feel) */
+.track-card {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: background-color var(--transition-normal), transform var(--transition-normal);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid transparent;
+}
+.track-card:hover {
+  background-color: var(--bg-surface-elevated);
+  transform: translateY(-4px);
+  border-color: var(--border-subtle);
+}
+
+.card-cover-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.card-cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  transition: transform var(--transition-normal);
+}
+.track-card:hover .card-cover {
+  transform: scale(1.04);
+}
+
+/* Floating Spotify Play Button */
+.floating-play-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--spotify-green);
+  color: #000;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  z-index: 5;
+}
+.floating-play-btn svg {
+  margin-left: 2px;
+}
+.track-card:hover .floating-play-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+.floating-play-btn:hover {
+  background-color: var(--spotify-green-hover);
+  transform: scale(1.08) !important;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-artist {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  font-size: 0.72rem;
+  color: var(--text-subdued);
+}
+.card-year {
+  font-family: var(--font-mono);
+}
+.card-add-blend {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.card-add-blend:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   RECOMMENDATIONS VIEW
+   ========================================================================== */
+.seed-hero-card {
+  display: grid;
+  grid-template-columns: 140px 1fr 300px;
+  gap: 24px;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(29, 185, 84, 0.15) 0%, var(--bg-surface) 100%);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+}
+.seed-hero-cover {
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+.seed-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--spotify-green);
+  text-transform: uppercase;
+}
+.seed-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 4px 0;
+  line-height: 1.2;
+}
+.seed-artist {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.seed-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.meta-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.seed-actions-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.btn-play-seed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--spotify-green);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-play-seed:hover {
+  background-color: var(--spotify-green-hover);
+  transform: scale(1.03);
+}
+.btn-add-blend-seed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-add-blend-seed:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--text-primary);
+}
+.btn-spotify-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: var(--radius-full);
+  background-color: rgba(29, 185, 84, 0.15);
+  border: 1px solid rgba(29, 185, 84, 0.35);
+  color: var(--spotify-green);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-spotify-mini:hover {
+  background-color: var(--spotify-green);
+  color: #000;
+  transform: scale(1.04);
+}
+
+/* Feature 1: Interactive Radar / Spider Comparison Box */
+.radar-interactive-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+.radar-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.radar-box-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--spotify-green);
+}
+.radar-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot-seed {
+  background-color: var(--spotify-green);
+  box-shadow: 0 0 6px var(--spotify-green);
+}
+.dot-comp {
+  background-color: #00e5ff;
+  box-shadow: 0 0 6px #00e5ff;
+}
+.radar-svg-wrapper {
+  width: 100%;
+  height: 175px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.radar-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.radar-comparison-insight {
+  font-size: 0.7rem;
+  color: var(--text-subdued);
+  text-align: center;
+  min-height: 16px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Feature 2: Vibe Tuner Toolbar */
+.vibe-tuner-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(18, 18, 18, 0.9) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+.vibe-tuner-card:hover {
+  border-color: rgba(29, 185, 84, 0.3);
+}
+.vibe-tuner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.vibe-tuner-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--spotify-green);
+}
+.vibe-tuner-titles h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.vibe-tuner-titles p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.vibe-tuner-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.vibe-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+.vibe-badge.tuned {
+  background: rgba(29, 185, 84, 0.2);
+  color: var(--spotify-green);
+  border: 1px solid rgba(29, 185, 84, 0.4);
+}
+.vibe-tuner-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+.vibe-tuner-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.vibe-tuner-body {
+  padding: 16px 20px 20px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.2s ease;
+}
+.vibe-sliders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.vibe-slider-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slider-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.slider-val {
+  font-family: var(--font-mono);
+  color: var(--spotify-green);
+  font-weight: 700;
+}
+.vibe-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+.vibe-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.vibe-slider:hover::-webkit-slider-thumb {
+  background: var(--spotify-green);
+  transform: scale(1.2);
+}
+.vibe-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.btn-apply-tune {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--spotify-green);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-apply-tune:hover {
+  background: var(--spotify-green-hover);
+  transform: scale(1.03);
+}
+.btn-reset-tune {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-reset-tune:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+/* Feature 5: Export Dropdown */
+.rec-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.export-dropdown-wrapper {
+  position: relative;
+}
+.btn-export-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-export-trigger:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.export-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #242424;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+  min-width: 210px;
+  z-index: 1000;
+  display: none;
+  animation: fadeIn 0.15s ease;
+  overflow: hidden;
+}
+.export-menu-dropdown.open {
+  display: flex;
+  flex-direction: column;
+}
+.export-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+.export-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--spotify-green);
+}
+
+/* Feature 3: Official Spotify Mini-Player Dock */
+.spotify-embed-dock {
+  position: fixed;
+  bottom: calc(var(--player-height) + 12px);
+  right: 24px;
+  width: 360px;
+  background: #181818;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.75);
+  z-index: 1200;
+  overflow: hidden;
+  display: none;
+  animation: slideUp 0.25s ease;
+}
+.spotify-embed-dock.open {
+  display: block;
+}
+.embed-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #202020;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.embed-dock-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.embed-dock-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+.embed-dock-close:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.1);
+}
+.embed-iframe-wrap {
+  padding: 10px;
+  background: #121212;
+}
+
+.btn-toggle-embed, .btn-spotify-embed-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background-color: rgba(29, 185, 84, 0.12);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  color: var(--spotify-green);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-toggle-embed:hover, .btn-spotify-embed-nav:hover {
+  background-color: var(--spotify-green);
+  color: #000;
+  transform: scale(1.03);
+}
+
+/* Feature 4: Audio Canvas Spectrum */
+.audio-spectrum-canvas {
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Recommendations Table */
+.recommendations-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.rec-section-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.rec-section-sub {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.rec-count-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--spotify-green);
+  background-color: rgba(29, 185, 84, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(29, 185, 84, 0.2);
+}
+
+.rec-table-wrap {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.rec-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.rec-table th {
+  padding: 14px 16px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-subdued);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.rec-table td {
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  vertical-align: middle;
+}
+.rec-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+.rec-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.th-num { width: 40px; text-align: center; }
+.th-match { width: 180px; }
+.th-energy { width: 140px; }
+.th-tempo { width: 90px; }
+.th-pop { width: 100px; }
+.th-actions { width: 160px; text-align: right; }
+
+.td-num {
+  text-align: center;
+  color: var(--text-subdued);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.table-track-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.table-track-cover {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #fff;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+.table-track-play-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+.table-track-cover:hover .table-track-play-overlay {
+  opacity: 1;
+}
+
+.table-track-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  cursor: pointer;
+}
+.table-track-name:hover {
+  text-decoration: underline;
+  color: var(--spotify-green);
+}
+.table-track-artist {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.match-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.match-bar-track {
+  flex: 1;
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.match-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1db954, #1ed760);
+  border-radius: var(--radius-full);
+}
+.match-pct-text {
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--spotify-green);
+  width: 45px;
+}
+
+.tempo-cell {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.vibe-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+.vibe-tag.vibe-high {
+  background-color: rgba(255, 110, 0, 0.15);
+  color: #ff914d;
+}
+.vibe-tag.vibe-dance {
+  background-color: rgba(186, 85, 211, 0.15);
+  color: #da70d6;
+}
+.vibe-tag.vibe-chill {
+  background-color: rgba(0, 191, 255, 0.15);
+  color: #00bfff;
+}
+
+.table-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.btn-icon-table {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.btn-icon-table:hover {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+.btn-icon-table.btn-rec-more:hover {
+  color: var(--spotify-green);
+}
+
+/* ==========================================================================
+   TASTE BLEND VIEW
+   ========================================================================== */
+.blend-hero-banner {
+  background: radial-gradient(circle at 10% 20%, rgba(186, 85, 211, 0.35) 0%, var(--bg-surface) 80%);
+  border: 1px solid rgba(186, 85, 211, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 28px;
+}
+.blend-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 6px 0 10px 0;
+}
+.blend-desc {
+  max-width: 680px;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.blend-builder-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.blend-seeds-box {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.blend-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.blend-box-header h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.btn-sm {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-sm:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.blend-seeds-container {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.empty-blend-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-subdued);
+  text-align: center;
+  padding: 32px 16px;
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  gap: 8px;
+}
+.empty-blend-placeholder p {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.empty-blend-placeholder span {
+  font-size: 0.8rem;
+  max-width: 320px;
+}
+
+.btn-execute-blend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  background-color: var(--spotify-green);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-execute-blend:hover:not(:disabled) {
+  background-color: var(--spotify-green-hover);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px var(--spotify-green-glow);
+}
+.btn-execute-blend:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.blend-preset-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.blend-preset-suggestions h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.quick-blend-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.quick-blend-card:hover {
+  background-color: var(--bg-surface-elevated);
+  border-color: rgba(186, 85, 211, 0.4);
+  transform: translateX(4px);
+}
+.quick-blend-icon {
+  font-size: 1.6rem;
+}
+.quick-blend-card h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.quick-blend-card p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   LIKED SONGS VIEW
+   ========================================================================== */
+.liked-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: linear-gradient(135deg, #450af5 0%, #121212 90%);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  margin-bottom: 24px;
+}
+.liked-heart-box {
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #450af5, #8e8ee5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+.liked-title {
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.liked-meta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.liked-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.btn-blend-liked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--spotify-green);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 12px 24px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-blend-liked:hover {
+  background-color: var(--spotify-green-hover);
+  transform: scale(1.03);
+}
+.btn-clear-liked {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  padding: 10px 18px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-clear-liked:hover {
+  color: #ff5555;
+  border-color: #ff5555;
+}
+
+/* ==========================================================================
+   MODEL RADAR / ANALYTICS VIEW
+   ========================================================================== */
+.radar-hero {
+  margin-bottom: 28px;
+}
+.radar-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.radar-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+.radar-card h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.radar-card p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+.dimension-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dimension-list li {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--spotify-green);
+}
+.dimension-list strong {
+  color: var(--text-primary);
+}
+
+.math-box {
+  background-color: #0d0d0d;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #a8ff78;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.feature-stats-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 20px;
+}
+.feature-stats-card h4 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.mini-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.mini-stat-row span {
+  color: var(--text-subdued);
+}
+
+/* ==========================================================================
+   BOTTOM SPOTIFY WEB PLAYER BAR
+   ========================================================================== */
+.player-bar {
+  grid-area: player;
+  background-color: #181818;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 200;
+  user-select: none;
+}
+
+/* Left: Now Playing */
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 30%;
+  min-width: 180px;
+}
+.player-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.player-track-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.player-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.player-title:hover {
+  text-decoration: underline;
+}
+.player-artist {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-heart-btn {
+  background: none;
+  border: none;
+  color: var(--text-subdued);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.player-heart-btn:hover {
+  color: var(--text-primary);
+  transform: scale(1.15);
+}
+.player-heart-btn.liked {
+  color: var(--spotify-green);
+}
+.player-heart-btn.liked svg {
+  fill: var(--spotify-green);
+}
+
+/* Center: Controls & Scrubber */
+.player-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 40%;
+  max-width: 620px;
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.ctrl-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.ctrl-btn:hover {
+  color: var(--text-primary);
+  transform: scale(1.1);
+}
+.ctrl-btn.active {
+  color: var(--spotify-green);
+}
+.ctrl-play-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+  color: var(--bg-black);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.ctrl-play-btn svg {
+  margin-left: 2px;
+}
+.ctrl-play-btn:hover {
+  transform: scale(1.08);
+  background-color: #fff;
+}
+
+.player-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.time-label {
+  font-size: 0.72rem;
+  color: var(--text-subdued);
+  font-family: var(--font-mono);
+  width: 32px;
+}
+.progress-bar-container {
+  flex: 1;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  position: relative;
+  cursor: pointer;
+}
+.progress-bar-container:hover {
+  height: 6px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--text-primary);
+  border-radius: var(--radius-full);
+  transition: background-color var(--transition-fast);
+}
+.progress-bar-container:hover .progress-bar-fill {
+  background-color: var(--spotify-green);
+}
+.progress-thumb {
+  display: none;
+}
+
+/* Right: Visualizer & Spotify Link */
+.player-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  width: 30%;
+  min-width: 180px;
+}
+
+/* Equalizer Wave Bars in Player */
+.player-eq-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+.player-eq-wave span {
+  width: 3px;
+  height: 4px;
+  background-color: var(--spotify-green);
+  border-radius: 2px;
+  transition: height 0.15s ease;
+}
+.player-eq-wave.playing span:nth-child(1) { animation: eqBar 0.7s infinite alternate ease; }
+.player-eq-wave.playing span:nth-child(2) { animation: eqBar 0.5s infinite alternate ease 0.2s; }
+.player-eq-wave.playing span:nth-child(3) { animation: eqBar 0.9s infinite alternate ease 0.4s; }
+.player-eq-wave.playing span:nth-child(4) { animation: eqBar 0.6s infinite alternate ease 0.1s; }
+
+.btn-spotify-external {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+.btn-spotify-external:hover {
+  background-color: var(--spotify-green);
+  color: #000;
+  border-color: transparent;
+  transform: scale(1.03);
+}
+
+.volume-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+.volume-slider:hover::-webkit-slider-thumb {
+  background: var(--spotify-green);
+  transform: scale(1.2);
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATIONS
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  bottom: calc(var(--player-height) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  background-color: #2e77d0;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.25s ease, fadeOut 0.25s ease 2.75s forwards;
+}
+.toast.toast-success {
+  background-color: #15803d;
+}
+
+/* ==========================================================================
+   KEYFRAME ANIMATIONS
+   ========================================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+@keyframes wave {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
+}
+
+@keyframes eqBar {
+  0% { height: 3px; }
+  100% { height: 16px; }
+}
+
+/* ==========================================================================
+   RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .app-layout {
+    grid-template-columns: 220px 1fr;
+  }
+  .seed-hero-card {
+    grid-template-columns: 120px 1fr;
+  }
+  .seed-audio-bars, .seed-actions {
+    grid-column: span 2;
+  }
+  .blend-builder-grid, .radar-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "main"
+      "player";
+  }
+  .sidebar {
+    display: none;
+  }
+  .top-nav {
+    padding: 0 12px;
+  }
+  .search-container {
+    margin: 0 8px;
+  }
+  .hero-visualizer {
+    display: none;
+  }
+  .player-bar {
+    padding: 0 12px;
+  }
+  .player-right {
+    display: none;
+  }
+  .player-left {
+    width: 45%;
+  }
+  .player-center {
+    width: 55%;
+  }
+}
+
+</style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231DB954'><path d='M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z'/></svg>">
+</head>
+<body>
+  <div class="app-layout" id="appLayout">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <svg class="spotify-brand-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/>
+        </svg>
+        <span class="brand-text">Spotify <span class="brand-accent">ML</span></span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="navHomeBtn" onclick="switchView('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Home</span>
+        </button>
+
+        <button class="nav-item" id="navSearchBtn" onclick="focusSearch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Search</span>
+        </button>
+
+        <button class="nav-item" id="navBlendBtn" onclick="switchView('blend')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          <span>Taste Blend</span>
+          <span class="nav-badge" id="blendCountBadge">0</span>
+        </button>
+
+        <button class="nav-item" id="navLikedBtn" onclick="switchView('liked')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <span>Liked Songs</span>
+          <span class="nav-badge liked-badge" id="likedCountBadge">0</span>
+        </button>
+
+        <button class="nav-item" id="navRadarBtn" onclick="switchView('radar')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <span>Model Analytics</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Quick Seed Queue / Blend Drawer -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <span class="section-title">BLEND BASKET</span>
+          <button class="clear-btn" onclick="clearBlendBasket()" title="Clear basket">Clear</button>
+        </div>
+        <div class="blend-basket-list" id="blendBasketList">
+          <div class="basket-empty-msg">Add tracks to blend taste vectors</div>
+        </div>
+        <button class="btn-blend-action" id="btnRunBlend" onclick="runBlendRecommendation()" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
+          Generate Blend
+        </button>
+      </div>
+
+      <!-- Model Spec Card -->
+      <div class="sidebar-model-info">
+        <div class="model-info-header">
+          <span class="status-dot"></span>
+          <span>k-NN Cosine Model</span>
+        </div>
+        <div class="model-stat-grid">
+          <div><span class="stat-num" id="statSongs">157.5K</span><span class="stat-label">Tracks</span></div>
+          <div><span class="stat-num" id="statDims">14D</span><span class="stat-label">Features</span></div>
+          <div><span class="stat-num">Brute</span><span class="stat-label">Metric</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN STAGE -->
+    <main class="main-content" id="mainContent">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-nav" id="topNav">
+        <div class="nav-arrows">
+          <button class="arrow-btn" onclick="window.history.back()" title="Go back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="arrow-btn" onclick="window.history.forward()" title="Go forward">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- SEARCH INPUT WITH LIVE AUTOCOMPLETE -->
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search from 157,000+ tracks, artists, or albums..." 
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;">✕</button>
+
+          <!-- DROPDOWN AUTOCOMPLETE -->
+          <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+
+        <div class="top-nav-actions">
+          <div class="model-badge-pill" title="Pre-trained Cosine Similarity Nearest Neighbors Engine">
+            <span class="pulse-indicator"></span>
+            <span>k-NN Engine Online</span>
+          </div>
+          <button class="btn-spotify-embed-nav" onclick="toggleSpotifyEmbed()" title="Toggle Official Spotify Mini-Player">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+            <span>Spotify Player</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- SCROLLABLE CONTENT BODY -->
+      <div class="content-scrollable" id="contentScrollable">
+
+        <!-- VIEW: HOME / DISCOVER -->
+        <section class="view-section active" id="viewHome">
+          <!-- HERO BANNER -->
+          <div class="hero-banner" id="heroBanner">
+            <div class="hero-gradient-overlay"></div>
+            <div class="hero-content">
+              <span class="hero-tag">AI-POWERED AUDIO TWIN DISCOVERY</span>
+              <h1 class="hero-title" id="greetingText">Good evening</h1>
+              <p class="hero-subtitle">
+                Select any track to compute cosine vectors across 14 high-dimensional audio traits. Discover acoustic twins with laboratory precision.
+              </p>
+              <div class="hero-buttons">
+                <button class="btn-primary" onclick="recommendById('0VjIjW4GlUZAMYd2vXMi3b')">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Recommend "Blinding Lights"</span>
+                </button>
+                <button class="btn-secondary" onclick="recommendRandom()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span>Surprise Me</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Waveform Animation -->
+            <div class="hero-visualizer" aria-hidden="true">
+              <div class="bar bar-1"></div>
+              <div class="bar bar-2"></div>
+              <div class="bar bar-3"></div>
+              <div class="bar bar-4"></div>
+              <div class="bar bar-5"></div>
+              <div class="bar bar-6"></div>
+              <div class="bar bar-7"></div>
+              <div class="bar bar-8"></div>
+              <div class="bar bar-9"></div>
+              <div class="bar bar-10"></div>
+            </div>
+          </div>
+
+          <!-- MOOD / VIBE QUICK FILTER CHIPS -->
+          <div class="filter-chips-container">
+            <button class="filter-chip active" onclick="filterPresets('all', this)">All Featured</button>
+            <button class="filter-chip" onclick="filterPresets('high_energy', this)">⚡ High Energy</button>
+            <button class="filter-chip" onclick="filterPresets('chill', this)">🌿 Chill & Acoustic</button>
+            <button class="filter-chip" onclick="filterPresets('dance', this)">🕺 Dance & Groove</button>
+            <button class="filter-chip" onclick="filterPresets('classics', this)">🎸 All-Time Classics</button>
+            <button class="filter-chip" onclick="filterPresets('happy', this)">☀️ Pure Euphoria</button>
+          </div>
+
+          <!-- SECTION: FEATURED PRESET TRACKS -->
+          <div class="shelf-section">
+            <div class="shelf-header">
+              <div>
+                <h2 class="shelf-title">Popular Seed Tracks</h2>
+                <p class="shelf-sub">Click any card to find nearest acoustic neighbors</p>
+              </div>
+            </div>
+            <div class="track-grid" id="presetTrackGrid">
+              <!-- Dynamically populated via JS -->
+              <div class="grid-skeleton">Loading tracks...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: RECOMMENDATIONS RESULT -->
+        <section class="view-section" id="viewRecommendations">
+          
+          <!-- SEED TRACK HERO WITH 2-SONG SPIDER RADAR COMPARISON -->
+          <div class="seed-hero-card" id="seedHeroCard">
+            <div class="seed-hero-cover" id="seedHeroCover">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            
+            <div class="seed-hero-info">
+              <span class="seed-badge">SOURCE SEED TRACK</span>
+              <h2 class="seed-title" id="seedTitle">—</h2>
+              <p class="seed-artist" id="seedArtist">—</p>
+              <div class="seed-meta-pills" id="seedMetaPills">
+                <!-- Pills populated via JS -->
+              </div>
+              <div class="seed-actions-inline">
+                <button class="btn-play-seed" id="btnPlaySeed" onclick="playSeedSong()">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Play Preview</span>
+                </button>
+                <button class="btn-add-blend-seed" id="btnAddSeedBlend" onclick="addCurrentSeedToBlend()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Add to Blend</span>
+                </button>
+                <button class="btn-spotify-mini" id="btnOpenSeedEmbed" onclick="openSpotifyEmbedForCurrentSeed()" title="Play in Official Spotify Embed">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+                  <span>Spotify Embed</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- FEATURE 1: 2-SONG INTERACTIVE SPIDER/RADAR COMPARISON CHART -->
+            <div class="radar-interactive-box">
+              <div class="radar-box-header">
+                <span class="radar-box-title">14D ACOUSTIC RADAR</span>
+                <div class="radar-legend">
+                  <span class="legend-item"><span class="legend-dot dot-seed"></span> Seed</span>
+                  <span class="legend-item"><span class="legend-dot dot-comp"></span> <span id="radarCompLabel">Match (Hover)</span></span>
+                </div>
+              </div>
+
+              <!-- SVG Radar Spider Canvas/Graphic -->
+              <div class="radar-svg-wrapper">
+                <svg id="radarSvg" viewBox="0 0 280 230" class="radar-svg">
+                  <!-- Background grid polygons and axis lines rendered via JS -->
+                </svg>
+              </div>
+              <div class="radar-comparison-insight" id="radarInsight">
+                Hover over any recommended song below to compare vector overlap in real time.
+              </div>
+            </div>
+          </div>
+
+          <!-- FEATURE 2: VIBE TUNER / PARAMETRIC FILTER SLIDERS -->
+          <div class="vibe-tuner-card" id="vibeTunerCard">
+            <div class="vibe-tuner-header" onclick="toggleVibeTuner()">
+              <div class="vibe-tuner-title-group">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                <div class="vibe-tuner-titles">
+                  <h4>Vibe Tuner — Parametric Vector Discovery</h4>
+                  <p>Fine-tune energy, mood, groove, and acousticness to re-weight recommendations</p>
+                </div>
+              </div>
+              <div class="vibe-tuner-toggle-wrap">
+                <span class="vibe-badge" id="vibeBadge">Standard Mode</span>
+                <button class="vibe-tuner-btn" id="vibeTunerToggleBtn">Customize Vibe ▾</button>
+              </div>
+            </div>
+
+            <div class="vibe-tuner-body" id="vibeTunerBody" style="display: none;">
+              <div class="vibe-sliders-grid">
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>⚡ Energy</span>
+                    <span class="slider-val" id="valTuneEnergy">0.70</span>
+                  </div>
+                  <input type="range" id="slideEnergy" min="0" max="100" value="70" class="vibe-slider" oninput="updateTuneSlider('energy', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>🕺 Danceability</span>
+                    <span class="slider-val" id="valTuneDance">0.65</span>
+                  </div>
+                  <input type="range" id="slideDance" min="0" max="100" value="65" class="vibe-slider" oninput="updateTuneSlider('danceability', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>☀️ Mood / Valence</span>
+                    <span class="slider-val" id="valTuneValence">0.50</span>
+                  </div>
+                  <input type="range" id="slideValence" min="0" max="100" value="50" class="vibe-slider" oninput="updateTuneSlider('valence', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>🌿 Acousticness</span>
+                    <span class="slider-val" id="valTuneAcoustic">0.20</span>
+                  </div>
+                  <input type="range" id="slideAcoustic" min="0" max="100" value="20" class="vibe-slider" oninput="updateTuneSlider('acousticness', this.value)">
+                </div>
+
+                <div class="vibe-slider-col">
+                  <div class="slider-label-row">
+                    <span>🥁 Target Tempo (BPM)</span>
+                    <span class="slider-val" id="valTuneTempo">120 BPM</span>
+                  </div>
+                  <input type="range" id="slideTempo" min="60" max="190" value="120" class="vibe-slider" oninput="updateTuneSlider('tempo', this.value)">
+                </div>
+              </div>
+
+              <div class="vibe-actions-row">
+                <button class="btn-apply-tune" onclick="applyVibeTuning()">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+                  <span>Apply Vector Shift & Query</span>
+                </button>
+                <button class="btn-reset-tune" onclick="resetVibeTuner()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span>Reset to Seed Values</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECOMMENDATIONS LIST / GRID -->
+          <div class="recommendations-container">
+            <div class="recommendations-header">
+              <div>
+                <h3 class="rec-section-title">Acoustic Matches Ranked by Cosine Proximity</h3>
+                <p class="rec-section-sub">Normalized across 14 traits: valence, danceability, energy, loudness, tempo, acousticness, & more</p>
+              </div>
+              
+              <div class="rec-header-actions">
+                <div class="rec-count-pill" id="recCountPill">12 Recommendations</div>
+                
+                <!-- FEATURE 5: EXPORT PLAYLIST DROPDOWN -->
+                <div class="export-dropdown-wrapper">
+                  <button class="btn-export-trigger" onclick="toggleExportMenu('rec')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export Playlist</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <div class="export-menu-dropdown" id="exportMenuRec">
+                    <button class="export-item" onclick="copySpotifyUrls('rec')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      <span>Copy Spotify URLs</span>
+                    </button>
+                    <button class="export-item" onclick="downloadCSV('rec')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      <span>Download CSV Spreadsheet</span>
+                    </button>
+                    <button class="export-item" onclick="downloadM3U('rec')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                      <span>Download M3U8 Playlist</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TABLE OF RECOMMENDATIONS -->
+            <div class="rec-table-wrap">
+              <table class="rec-table">
+                <thead>
+                  <tr>
+                    <th class="th-num">#</th>
+                    <th class="th-title">TITLE</th>
+                    <th class="th-match">SIMILARITY MATCH</th>
+                    <th class="th-energy">ENERGY & MOOD</th>
+                    <th class="th-tempo">BPM</th>
+                    <th class="th-pop">POPULARITY</th>
+                    <th class="th-actions">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody id="recommendationsTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: TASTE BLEND -->
+        <section class="view-section" id="viewBlend">
+          <div class="blend-hero-banner">
+            <div class="blend-hero-text">
+              <span class="hero-tag">VECTOR CENTROID BLEND</span>
+              <h2 class="blend-title">Create a Multi-Song Taste Blend</h2>
+              <p class="blend-desc">Add 2 to 5 tracks with different styles. Our algorithm calculates the high-dimensional mean taste vector and queries the nearest unlistened neighbors in 14-dimensional Euclidean-cosine space.</p>
+            </div>
+          </div>
+
+          <div class="blend-builder-grid">
+            <div class="blend-seeds-box">
+              <div class="blend-box-header">
+                <h3>Selected Seed Tracks (<span id="blendBasketCount">0</span>/5)</h3>
+                <button class="btn-sm" onclick="clearBlendBasket()">Reset All</button>
+              </div>
+              <div class="blend-seeds-container" id="blendSeedsContainer">
+                <div class="empty-blend-placeholder">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="48" height="48"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                  <p>Your blend basket is empty.</p>
+                  <span>Search for any song or click "+ Blend" on any song card to add seeds here.</span>
+                </div>
+              </div>
+              <button class="btn-execute-blend" id="btnExecuteBlendLarge" onclick="runBlendRecommendation()" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+                <span>Calculate & Generate Blended Playlist</span>
+              </button>
+            </div>
+
+            <div class="blend-preset-suggestions">
+              <h3>Quick Blend Ideas</h3>
+              <div class="quick-blend-card" onclick="loadBlendPreset('pop_rock')">
+                <div class="quick-blend-icon">⚡</div>
+                <div>
+                  <h4>Pop Meets Classic Rock</h4>
+                  <p>Blinding Lights + Bohemian Rhapsody</p>
+                </div>
+              </div>
+              <div class="quick-blend-card" onclick="loadBlendPreset('dance_chill')">
+                <div class="quick-blend-icon">🌊</div>
+                <div>
+                  <h4>Chill Groove Synthesis</h4>
+                  <p>Sunflower + Let Her Go + Get Lucky</p>
+                </div>
+              </div>
+              <div class="quick-blend-card" onclick="loadBlendPreset('high_voltage')">
+                <div class="quick-blend-icon">🔥</div>
+                <div>
+                  <h4>High Energy Workout</h4>
+                  <p>Believer + Dynamite + Smells Like Teen Spirit</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blend-results-section" id="blendResultsSection" style="display:none;">
+            <div class="shelf-header">
+              <div>
+                <h3 class="shelf-title">Blended Recommendations</h3>
+                <p class="shelf-sub">Harmonized across your combined taste preferences</p>
+              </div>
+
+              <!-- Export Playlist Trigger for Blend -->
+              <div class="export-dropdown-wrapper">
+                <button class="btn-export-trigger" onclick="toggleExportMenu('blend')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Export Blend</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+                <div class="export-menu-dropdown" id="exportMenuBlend">
+                  <button class="export-item" onclick="copySpotifyUrls('blend')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Spotify URLs</span>
+                  </button>
+                  <button class="export-item" onclick="downloadCSV('blend')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Download CSV Spreadsheet</span>
+                  </button>
+                  <button class="export-item" onclick="downloadM3U('blend')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                    <span>Download M3U8 Playlist</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="rec-table-wrap">
+              <table class="rec-table">
+                <thead>
+                  <tr>
+                    <th class="th-num">#</th>
+                    <th class="th-title">TITLE</th>
+                    <th class="th-match">SIMILARITY MATCH</th>
+                    <th class="th-energy">ENERGY & MOOD</th>
+                    <th class="th-tempo">BPM</th>
+                    <th class="th-pop">POPULARITY</th>
+                    <th class="th-actions">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody id="blendTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: LIKED SONGS -->
+        <section class="view-section" id="viewLiked">
+          <div class="liked-hero">
+            <div class="liked-heart-box">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="56" height="56"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+            <div>
+              <span class="hero-tag">PLAYLIST</span>
+              <h1 class="liked-title">Liked Songs</h1>
+              <p class="liked-meta"><span id="likedCountText">0 songs</span> • Saved in your local browser storage</p>
+            </div>
+          </div>
+          <div class="liked-actions-bar">
+            <button class="btn-blend-liked" onclick="blendAllLiked()" id="btnBlendLiked">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
+              <span>Blend All Liked Tracks</span>
+            </button>
+            <button class="btn-clear-liked" onclick="clearAllLiked()">Clear All</button>
+          </div>
+          <div class="liked-list-wrap">
+            <div class="track-grid" id="likedGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: MODEL RADAR / ANALYTICS -->
+        <section class="view-section" id="viewRadar">
+          <div class="radar-hero">
+            <span class="hero-tag">MACHINE LEARNING ARCHITECTURE</span>
+            <h2 class="shelf-title">Audio Feature Vector Space</h2>
+            <p class="shelf-sub">Understand how our unsupervised k-NN model computes distance in Spotify's audio dimension matrix</p>
+          </div>
+
+          <div class="radar-grid">
+            <div class="radar-card">
+              <h3>14 Audio Dimensions</h3>
+              <p>Each track is mapped into a 14-dimensional continuous space and normalized with <code>StandardScaler</code> to eliminate scale biases.</p>
+              <ul class="dimension-list">
+                <li><strong>Acousticness:</strong> Confidence measure of whether the track is acoustic (0.0 to 1.0).</li>
+                <li><strong>Danceability:</strong> How suitable a track is for dancing based on tempo, rhythm stability, beat strength.</li>
+                <li><strong>Energy:</strong> Perceptual measure of intensity, activity, dynamic range, and timbre.</li>
+                <li><strong>Valence:</strong> Musical positiveness. High valence sounds happy/cheerful, low sounds sad/angry.</li>
+                <li><strong>Instrumentalness:</strong> Predicts whether a track contains no vocals.</li>
+                <li><strong>Liveness:</strong> Detects presence of an audience in the recording.</li>
+                <li><strong>Speechiness:</strong> Detects presence of spoken words.</li>
+                <li><strong>Tempo:</strong> Overall estimated tempo of a track in beats per minute (BPM).</li>
+                <li><strong>Loudness:</strong> Overall loudness in decibels (dB).</li>
+                <li><strong>Popularity:</strong> Spotify popularity index (0 to 100).</li>
+              </ul>
+            </div>
+
+            <div class="radar-card">
+              <h3>Algorithm: Cosine Proximity</h3>
+              <div class="math-box">
+                <code>Similarity(u, v) = 1 - CosineDistance(u, v) = (u • v) / (||u|| ||v||)</code>
+              </div>
+              <p>By computing brute-force Cosine Metric over 157,519 standardized feature rows, query execution resolves in sub-15ms with zero distortion.</p>
+              
+              <div class="feature-stats-card">
+                <h4>System Metrics</h4>
+                <div class="mini-stat-row"><span>Indexed Library:</span> <strong>157,519 tracks</strong></div>
+                <div class="mini-stat-row"><span>Historical Range:</span> <strong>1921 — 2020</strong></div>
+                <div class="mini-stat-row"><span>Distance Metric:</span> <strong>Cosine Similarity</strong></div>
+                <div class="mini-stat-row"><span>Standardization:</span> <strong>Zero Mean, Unit Variance</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- FEATURE 3: DOCKABLE OFFICIAL SPOTIFY MINI-PLAYER DRAWER -->
+    <div class="spotify-embed-dock" id="spotifyEmbedDock">
+      <div class="embed-dock-header">
+        <div class="embed-dock-title">
+          <svg viewBox="0 0 24 24" fill="var(--spotify-green)" width="18" height="18"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+          <span>Official Spotify Player</span>
+        </div>
+        <button class="embed-dock-close" onclick="closeSpotifyEmbed()">✕</button>
+      </div>
+      <div class="embed-iframe-wrap">
+        <iframe id="spotifyEmbedIframe" src="" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <!-- BOTTOM SPOTIFY WEB PLAYER BAR -->
+    <footer class="player-bar" id="playerBar">
+      <!-- Left: Track info -->
+      <div class="player-left">
+        <div class="player-cover" id="playerCover" style="background: linear-gradient(135deg, #1DB954, #191414);">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </div>
+        <div class="player-track-info">
+          <div class="player-title" id="playerTitle">Blinding Lights</div>
+          <div class="player-artist" id="playerArtist">The Weeknd</div>
+        </div>
+        <button class="player-heart-btn" id="playerHeartBtn" onclick="toggleLikeCurrent()" title="Save to Liked Songs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </button>
+      </div>
+
+      <!-- Center: Controls & Scrubber -->
+      <div class="player-center">
+        <div class="player-controls">
+          <button class="ctrl-btn" id="ctrlShuffle" onclick="toggleShuffle()" title="Shuffle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+          </button>
+          <button class="ctrl-btn" onclick="playPrev()" title="Previous track">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2.5"></line></svg>
+          </button>
+          <button class="ctrl-play-btn" id="ctrlPlayBtn" onclick="togglePlayPause()" title="Play / Pause">
+            <svg id="ctrlPlayIcon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="ctrlPauseIcon" viewBox="0 0 24 24" fill="currentColor" width="22" height="22" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          </button>
+          <button class="ctrl-btn" onclick="playNext()" title="Next track">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line></svg>
+          </button>
+          <button class="ctrl-btn" id="ctrlRepeat" onclick="toggleRepeat()" title="Repeat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+          </button>
+        </div>
+
+        <div class="player-progress-row">
+          <span class="time-label" id="timeCurrent">0:00</span>
+          <div class="progress-bar-container" id="progressBarContainer" onclick="seekAudio(event)">
+            <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
+          <span class="time-label" id="timeTotal">3:20</span>
+        </div>
+      </div>
+
+      <!-- Right: Extras, Canvas Spectrum & Spotify Embed Button -->
+      <div class="player-right">
+        <!-- FEATURE 4: LIVE HTML5 CANVAS AUDIO SPECTRUM VISUALIZER -->
+        <canvas id="audioVisualizerCanvas" class="audio-spectrum-canvas" width="120" height="26" title="Live Web Audio Frequency Spectrum"></canvas>
+
+        <button class="btn-toggle-embed" onclick="toggleSpotifyEmbed()" title="Toggle Official Spotify Mini-Player">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+          <span>Embed Player</span>
+        </button>
+
+        <a href="https://open.spotify.com" target="_blank" rel="noopener noreferrer" class="btn-spotify-external" id="btnSpotifyExternal" title="Listen on official Spotify">
+          <span>Spotify</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+
+        <div class="volume-container">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" oninput="setAudioVolume(this.value)">
+        </div>
+      </div>
+    </footer>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+  </div>
+
+  <script>
+/**
+ * SPOTIFY AI RECOMMENDER — CLIENT ENGINE
+ * Handles Live Search Autocomplete, k-NN Recommendations, Vector Blend,
+ * Spider Radar Comparison Chart, Vibe Tuner Sliders, Spotify Embed Dock,
+ * Live Canvas Audio Spectrum Visualizer, and Playlist Export.
+ */
+
+// Application State
+const state = {
+  currentTrack: null,
+  currentSeed: null,
+  comparisonTrack: null,
+  currentRecommendations: [],
+  currentBlendRecommendations: [],
+  tuneParams: null,
+  isPlaying: false,
+  audioContext: null,
+  analyser: null,
+  visualizerRunning: false,
+  synthInterval: null,
+  masterGain: null,
+  currentTime: 0,
+  durationSec: 200,
+  timerInterval: null,
+  activeView: 'home',
+  presets: [],
+  blendBasket: [],
+  likedSongs: [],
+  recommendationHistory: []
+};
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  initGreeting();
+  loadLikedSongsFromStorage();
+  loadPresets();
+  setupSearch();
+  setupKeyboardShortcuts();
+  fetchModelStats();
+  setupCanvasSpectrum();
+});
+
+/* ==========================================================================
+   GREETING & STATS
+   ========================================================================== */
+function initGreeting() {
+  const greetingEl = document.getElementById('greetingText');
+  if (!greetingEl) return;
+  const hour = new Date().getHours();
+  if (hour < 12) greetingEl.textContent = 'Good morning';
+  else if (hour < 18) greetingEl.textContent = 'Good afternoon';
+  else greetingEl.textContent = 'Good evening';
+}
+
+async function fetchModelStats() {
+  try {
+    const res = await fetch('/api/stats');
+    if (!res.ok) return;
+    const data = await res.json();
+    const statSongs = document.getElementById('statSongs');
+    const statDims = document.getElementById('statDims');
+    if (statSongs) statSongs.textContent = `${(data.total_songs / 1000).toFixed(1)}K`;
+    if (statDims) statDims.textContent = `${data.dimensions}D`;
+  } catch (err) {
+    console.warn('Could not fetch stats', err);
+  }
+}
+
+/* ==========================================================================
+   VIEW SWITCHING
+   ========================================================================== */
+function switchView(viewName) {
+  state.activeView = viewName;
+
+  // Toggle active class on sections
+  const views = ['home', 'recommendations', 'blend', 'liked', 'radar'];
+  views.forEach(v => {
+    const el = document.getElementById(`view${capitalize(v)}`);
+    if (el) el.classList.toggle('active', v === viewName);
+  });
+
+  // Toggle active nav button
+  const navMap = {
+    home: 'navHomeBtn',
+    blend: 'navBlendBtn',
+    liked: 'navLikedBtn',
+    radar: 'navRadarBtn'
+  };
+  Object.keys(navMap).forEach(key => {
+    const btn = document.getElementById(navMap[key]);
+    if (btn) btn.classList.toggle('active', key === viewName);
+  });
+
+  // Scroll to top
+  const scrollable = document.getElementById('contentScrollable');
+  if (scrollable) scrollable.scrollTop = 0;
+
+  // Special view updates
+  if (viewName === 'liked') renderLikedGrid();
+  if (viewName === 'blend') updateBlendUI();
+}
+
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* ==========================================================================
+   FEATURED PRESETS & FILTER CHIPS
+   ========================================================================== */
+async function loadPresets() {
+  try {
+    const res = await fetch('/api/presets');
+    if (!res.ok) throw new Error('Preset fetch failed');
+    state.presets = await res.json();
+    renderPresetGrid(state.presets);
+    
+    // Set default track for player if not already set
+    if (!state.currentTrack && state.presets.length > 0) {
+      setPlayerTrack(state.presets[0], false);
+    }
+  } catch (err) {
+    console.error('Error loading presets:', err);
+    const grid = document.getElementById('presetTrackGrid');
+    if (grid) grid.innerHTML = `<div class="basket-empty-msg">Could not load featured tracks. Please refresh.</div>`;
+  }
+}
+
+function renderPresetGrid(tracks) {
+  const grid = document.getElementById('presetTrackGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (tracks.length === 0) {
+    grid.innerHTML = `<div class="basket-empty-msg" style="grid-column: 1/-1;">No tracks matched this filter.</div>`;
+    return;
+  }
+
+  tracks.forEach(track => {
+    const card = document.createElement('div');
+    card.className = 'track-card';
+    card.title = `Click to get AI recommendations based on ${track.name}`;
+    card.innerHTML = `
+      <div class="card-cover-wrap">
+        <div class="card-cover" style="background: ${track.gradient}">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </div>
+        <button class="floating-play-btn" onclick="event.stopPropagation(); playSongFromCard('${track.id}')" title="Play preview">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+      <div class="card-title">${escapeHtml(track.name)}</div>
+      <div class="card-artist">${escapeHtml(track.artist)}</div>
+      <div class="card-footer">
+        <span class="card-year">${track.year}</span>
+        <button class="card-add-blend" onclick="event.stopPropagation(); toggleBlendBasket('${track.id}')" title="Add to blend basket">+ Blend</button>
+      </div>
+    `;
+    card.onclick = () => recommendById(track.id);
+    grid.appendChild(card);
+  });
+}
+
+function filterPresets(filterType, btn) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  let filtered = [...state.presets];
+  if (filterType === 'high_energy') {
+    filtered = filtered.filter(t => t.energy >= 0.65);
+  } else if (filterType === 'chill') {
+    filtered = filtered.filter(t => t.acousticness >= 0.3 || t.energy <= 0.5);
+  } else if (filterType === 'dance') {
+    filtered = filtered.filter(t => t.danceability >= 0.7);
+  } else if (filterType === 'classics') {
+    filtered = filtered.filter(t => t.year < 2000);
+  } else if (filterType === 'happy') {
+    filtered = filtered.filter(t => t.valence >= 0.6);
+  }
+  renderPresetGrid(filtered);
+}
+
+/* ==========================================================================
+   LIVE SEARCH & AUTOCOMPLETE
+   ========================================================================== */
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  const dropdown = document.getElementById('searchDropdown');
+  const clearBtn = document.getElementById('clearSearchBtn');
+  let debounceTimeout = null;
+  let highlightedIndex = -1;
+
+  if (!input || !dropdown) return;
+
+  input.addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    if (clearBtn) clearBtn.style.display = val ? 'block' : 'none';
+
+    clearTimeout(debounceTimeout);
+    if (!val) {
+      dropdown.classList.remove('open');
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    debounceTimeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(val)}&limit=10`);
+        if (!res.ok) return;
+        const results = await res.json();
+        renderSearchDropdown(results);
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    }, 180);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = dropdown.querySelectorAll('.search-item');
+    if (!dropdown.classList.contains('open') || items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = (highlightedIndex + 1) % items.length;
+      updateHighlight(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+      updateHighlight(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && items[highlightedIndex]) {
+        items[highlightedIndex].click();
+      } else if (items[0]) {
+        items[0].click();
+      }
+    } else if (e.key === 'Escape') {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+      dropdown.classList.remove('open');
+    }
+    // Close export dropdowns
+    if (!e.target.closest('.export-dropdown-wrapper')) {
+      document.querySelectorAll('.export-menu-dropdown').forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  function updateHighlight(items) {
+    items.forEach((it, idx) => {
+      it.classList.toggle('highlighted', idx === highlightedIndex);
+    });
+  }
+}
+
+function renderSearchDropdown(results) {
+  const dropdown = document.getElementById('searchDropdown');
+  if (!dropdown) return;
+
+  if (results.length === 0) {
+    dropdown.innerHTML = `<div class="search-item" style="cursor: default; color: var(--text-subdued);">No tracks matching search</div>`;
+    dropdown.classList.add('open');
+    return;
+  }
+
+  dropdown.innerHTML = '';
+  results.forEach(track => {
+    const item = document.createElement('div');
+    item.className = 'search-item';
+    item.innerHTML = `
+      <div class="search-item-cover" style="background: ${track.gradient}">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      </div>
+      <div class="search-item-details">
+        <div class="search-item-title">${escapeHtml(track.name)}</div>
+        <div class="search-item-sub">${escapeHtml(track.artist)}</div>
+      </div>
+      <div class="search-item-meta">
+        <span class="search-item-year">${track.year}</span>
+        <span class="pop-badge">${track.popularity} pop</span>
+      </div>
+    `;
+    item.onclick = () => {
+      dropdown.classList.remove('open');
+      const input = document.getElementById('searchInput');
+      if (input) input.value = `${track.name} - ${track.artist}`;
+      recommendById(track.id);
+    };
+    dropdown.appendChild(item);
+  });
+
+  dropdown.classList.add('open');
+}
+
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  const dropdown = document.getElementById('searchDropdown');
+  const clearBtn = document.getElementById('clearSearchBtn');
+  if (input) input.value = '';
+  if (dropdown) dropdown.classList.remove('open');
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (input) input.focus();
+}
+
+function focusSearch() {
+  const input = document.getElementById('searchInput');
+  if (input) {
+    input.focus();
+    input.select();
+  }
+}
+
+/* ==========================================================================
+   RECOMMENDATIONS ENGINE
+   ========================================================================== */
+async function recommendById(trackId) {
+  showToast('Computing 14D Cosine Neighbors...');
+  try {
+    const res = await fetch(`/api/recommend?id=${encodeURIComponent(trackId)}&n=15`);
+    if (!res.ok) throw new Error('Recommendation request failed');
+    const data = await res.json();
+    renderRecommendations(data);
+    switchView('recommendations');
+    setPlayerTrack(data.seed, false);
+    initVibeTuner(data.seed);
+  } catch (err) {
+    console.error('Error fetching recommendations:', err);
+    showToast('Could not find recommendations for this track.');
+  }
+}
+
+function recommendRandom() {
+  if (state.presets.length > 0) {
+    const rand = state.presets[Math.floor(Math.random() * state.presets.length)];
+    recommendById(rand.id);
+  } else {
+    recommendById('0VjIjW4GlUZAMYd2vXMi3b');
+  }
+}
+
+function renderRecommendations(data) {
+  const seed = data.seed;
+  const recs = data.recommendations;
+  state.currentRecommendations = recs;
+  state.currentSeed = seed;
+
+  // Render Seed Track Card Info
+  const coverEl = document.getElementById('seedHeroCover');
+  const titleEl = document.getElementById('seedTitle');
+  const artistEl = document.getElementById('seedArtist');
+  const pillsEl = document.getElementById('seedMetaPills');
+
+  if (coverEl) coverEl.style.background = seed.gradient;
+  if (titleEl) titleEl.textContent = seed.name;
+  if (artistEl) artistEl.textContent = seed.artist;
+
+  if (pillsEl) {
+    pillsEl.innerHTML = `
+      <span class="meta-pill">📅 ${seed.year}</span>
+      <span class="meta-pill">🔥 ${seed.popularity} Popularity</span>
+      <span class="meta-pill">⏱️ ${seed.duration}</span>
+      <span class="meta-pill">🥁 ${seed.tempo} BPM</span>
+      <span class="meta-pill">🔊 ${seed.loudness} dB</span>
+    `;
+  }
+
+  // FEATURE 1: Render Interactive SVG Spider Radar Chart
+  renderRadarChart(seed, null);
+
+  // Recommendations Table
+  const tbody = document.getElementById('recommendationsTableBody');
+  const countPill = document.getElementById('recCountPill');
+  if (countPill) countPill.textContent = `${recs.length} Matches Found`;
+
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  recs.forEach((track, idx) => {
+    const tr = document.createElement('tr');
+    const vibe = getVibeTag(track);
+
+    // Mouse hover listeners for Spider Radar Comparison
+    tr.onmouseenter = () => compareTrackOnRadar(track.id);
+    tr.onmouseleave = () => clearRadarComparison();
+
+    tr.innerHTML = `
+      <td class="td-num">${idx + 1}</td>
+      <td>
+        <div class="table-track-cell">
+          <div class="table-track-cover" style="background: ${track.gradient}" onclick="playSongObject(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(track))}')))">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            <div class="table-track-play-overlay">
+              <svg viewBox="0 0 24 24" fill="#fff" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div>
+            <div class="table-track-name" onclick="recommendById('${track.id}')" title="Click to branch recommendations from this track">${escapeHtml(track.name)}</div>
+            <div class="table-track-artist">${escapeHtml(track.artist)} • ${track.year}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="match-bar-wrap">
+          <div class="match-bar-track">
+            <div class="match-bar-fill" style="width: ${track.match_pct}%"></div>
+          </div>
+          <span class="match-pct-text">${track.match_pct}%</span>
+        </div>
+      </td>
+      <td><span class="vibe-tag ${vibe.cls}">${vibe.label}</span></td>
+      <td class="tempo-cell">${track.tempo}</td>
+      <td>
+        <div class="match-bar-wrap">
+          <div class="match-bar-track" style="height: 6px;">
+            <div class="match-bar-fill" style="width: ${track.popularity}%; background: rgba(255,255,255,0.7);"></div>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-subdued);">${track.popularity}</span>
+        </div>
+      </td>
+      <td>
+        <div class="table-actions-cell">
+          <button class="btn-icon-table" onclick="toggleLikeTrack('${track.id}')" title="Save to Liked Songs">
+            <svg viewBox="0 0 24 24" fill="${isLiked(track.id) ? 'var(--spotify-green)' : 'none'}" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+          <button class="btn-icon-table" onclick="toggleBlendBasket('${track.id}')" title="Add to Blend Basket">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button class="btn-icon-table btn-rec-more" onclick="recommendById('${track.id}')" title="Find tracks similar to this">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </button>
+          <button class="btn-icon-table" onclick="openSpotifyEmbed('${track.id}')" title="Play official Spotify audio preview">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function getVibeTag(track) {
+  if (track.energy > 0.75) return { label: '⚡ Energetic', cls: 'vibe-high' };
+  if (track.danceability > 0.72) return { label: '🕺 Dance', cls: 'vibe-dance' };
+  if (track.acousticness > 0.45 || track.energy < 0.4) return { label: '🌿 Chill', cls: 'vibe-chill' };
+  if (track.valence > 0.65) return { label: '☀️ Uplifting', cls: 'vibe-high' };
+  return { label: '🎵 Harmonic', cls: '' };
+}
+
+function playSeedSong() {
+  if (state.currentSeed) playSongObject(state.currentSeed);
+}
+
+function addCurrentSeedToBlend() {
+  if (state.currentSeed) toggleBlendBasket(state.currentSeed.id);
+}
+
+/* ==========================================================================
+   FEATURE 1: INTERACTIVE 2-SONG SPIDER / RADAR COMPARISON CHART
+   ========================================================================== */
+function renderRadarChart(seed, comp = null) {
+  const svg = document.getElementById('radarSvg');
+  const compLabel = document.getElementById('radarCompLabel');
+  const insight = document.getElementById('radarInsight');
+  if (!svg) return;
+
+  const cx = 140;
+  const cy = 110;
+  const r = 70;
+
+  // 6 Primary Dimensions
+  const traits = [
+    { key: 'energy', label: 'Energy' },
+    { key: 'danceability', label: 'Dance' },
+    { key: 'valence', label: 'Valence' },
+    { key: 'acousticness', label: 'Acoustic' },
+    { key: 'tempo_norm', label: 'Tempo' },
+    { key: 'liveness', label: 'Liveness' }
+  ];
+
+  const numAxes = traits.length;
+  const angleStep = (Math.PI * 2) / numAxes;
+
+  // Build SVG content
+  let svgContent = '';
+
+  // 1. Background Grid Rings (25%, 50%, 75%, 100%)
+  [0.25, 0.5, 0.75, 1.0].forEach(level => {
+    let pts = [];
+    for (let i = 0; i < numAxes; i++) {
+      const angle = i * angleStep - Math.PI / 2;
+      const x = cx + r * level * Math.cos(angle);
+      const y = cy + r * level * Math.sin(angle);
+      pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    svgContent += `<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />`;
+  });
+
+  // 2. Axis Lines and Labels
+  for (let i = 0; i < numAxes; i++) {
+    const angle = i * angleStep - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    svgContent += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.12)" stroke-width="1" />`;
+
+    // Label positioning
+    const lx = cx + (r + 18) * Math.cos(angle);
+    const ly = cy + (r + 14) * Math.sin(angle);
+    svgContent += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="#888" font-size="9" font-weight="700">${traits[i].label}</text>`;
+  }
+
+  // Helper to extract normalized values (0.0 to 1.0)
+  function getVal(track, key) {
+    if (key === 'tempo_norm') {
+      const t = track.tempo || 120;
+      return Math.min(1.0, Math.max(0.1, (t - 50) / 130));
+    }
+    return Math.min(1.0, Math.max(0.05, track[key] !== undefined ? track[key] : 0.5));
+  }
+
+  // 3. Render Seed Polygon (Spotify Green)
+  let seedPts = [];
+  let seedCircles = '';
+  for (let i = 0; i < numAxes; i++) {
+    const angle = i * angleStep - Math.PI / 2;
+    const v = getVal(seed, traits[i].key);
+    const x = cx + r * v * Math.cos(angle);
+    const y = cy + r * v * Math.sin(angle);
+    seedPts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    seedCircles += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#1DB954" />`;
+  }
+  svgContent += `<polygon points="${seedPts.join(' ')}" fill="rgba(29, 185, 84, 0.35)" stroke="#1DB954" stroke-width="2.2" />`;
+  svgContent += seedCircles;
+
+  // 4. Render Comparison Polygon if hovered (Cyan #00e5ff)
+  if (comp) {
+    let compPts = [];
+    let compCircles = '';
+    for (let i = 0; i < numAxes; i++) {
+      const angle = i * angleStep - Math.PI / 2;
+      const v = getVal(comp, traits[i].key);
+      const x = cx + r * v * Math.cos(angle);
+      const y = cy + r * v * Math.sin(angle);
+      compPts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+      compCircles += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#00e5ff" />`;
+    }
+    svgContent += `<polygon points="${compPts.join(' ')}" fill="rgba(0, 229, 255, 0.32)" stroke="#00e5ff" stroke-width="2.2" stroke-dasharray="3 2" />`;
+    svgContent += compCircles;
+
+    if (compLabel) compLabel.textContent = comp.name;
+    if (insight) {
+      const dEnergy = Math.round((comp.energy - seed.energy) * 100);
+      const dDance = Math.round((comp.danceability - seed.danceability) * 100);
+      const signE = dEnergy >= 0 ? `+${dEnergy}%` : `${dEnergy}%`;
+      const signD = dDance >= 0 ? `+${dDance}%` : `${dDance}%`;
+      insight.textContent = `Comparing "${comp.name}": Energy (${signE}), Danceability (${signD}) — ${comp.match_pct || 98}% match.`;
+    }
+  } else {
+    if (compLabel) compLabel.textContent = 'Match (Hover)';
+    if (insight) insight.textContent = 'Hover over any recommended song below to compare vector overlap in real time.';
+  }
+
+  svg.innerHTML = svgContent;
+}
+
+function compareTrackOnRadar(trackId) {
+  if (!state.currentRecommendations || !state.currentSeed) return;
+  const comp = state.currentRecommendations.find(t => t.id === trackId);
+  if (comp) {
+    state.comparisonTrack = comp;
+    renderRadarChart(state.currentSeed, comp);
+  }
+}
+
+function clearRadarComparison() {
+  if (state.currentSeed) {
+    state.comparisonTrack = null;
+    renderRadarChart(state.currentSeed, null);
+  }
+}
+
+/* ==========================================================================
+   FEATURE 2: VIBE TUNER / PARAMETRIC FILTER SLIDERS
+   ========================================================================== */
+function toggleVibeTuner() {
+  const body = document.getElementById('vibeTunerBody');
+  const btn = document.getElementById('vibeTunerToggleBtn');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (btn) btn.textContent = isOpen ? 'Customize Vibe ▾' : 'Close Vibe Tuner ▴';
+}
+
+function initVibeTuner(seed) {
+  if (!seed) return;
+  setSliderVal('slideEnergy', 'valTuneEnergy', Math.round((seed.energy || 0.7) * 100), (seed.energy || 0.7).toFixed(2));
+  setSliderVal('slideDance', 'valTuneDance', Math.round((seed.danceability || 0.65) * 100), (seed.danceability || 0.65).toFixed(2));
+  setSliderVal('slideValence', 'valTuneValence', Math.round((seed.valence || 0.5) * 100), (seed.valence || 0.5).toFixed(2));
+  setSliderVal('slideAcoustic', 'valTuneAcoustic', Math.round((seed.acousticness || 0.2) * 100), (seed.acousticness || 0.2).toFixed(2));
+  setSliderVal('slideTempo', 'valTuneTempo', Math.round(seed.tempo || 120), `${Math.round(seed.tempo || 120)} BPM`);
+  
+  const badge = document.getElementById('vibeBadge');
+  if (badge) {
+    badge.textContent = 'Standard Mode';
+    badge.classList.remove('tuned');
+  }
+}
+
+function setSliderVal(sliderId, labelId, val, labelText) {
+  const s = document.getElementById(sliderId);
+  const l = document.getElementById(labelId);
+  if (s) s.value = val;
+  if (l) l.textContent = labelText;
+}
+
+function updateTuneSlider(trait, val) {
+  if (trait === 'energy') document.getElementById('valTuneEnergy').textContent = (val / 100).toFixed(2);
+  if (trait === 'danceability') document.getElementById('valTuneDance').textContent = (val / 100).toFixed(2);
+  if (trait === 'valence') document.getElementById('valTuneValence').textContent = (val / 100).toFixed(2);
+  if (trait === 'acousticness') document.getElementById('valTuneAcoustic').textContent = (val / 100).toFixed(2);
+  if (trait === 'tempo') document.getElementById('valTuneTempo').textContent = `${val} BPM`;
+}
+
+async function applyVibeTuning() {
+  if (!state.currentSeed) return;
+  showToast('Re-weighting query vector...');
+
+  const tunedEnergy = Number(document.getElementById('slideEnergy').value) / 100;
+  const tunedDance = Number(document.getElementById('slideDance').value) / 100;
+  const tunedValence = Number(document.getElementById('slideValence').value) / 100;
+  const tunedAcoustic = Number(document.getElementById('slideAcoustic').value) / 100;
+  const tunedTempo = Number(document.getElementById('slideTempo').value);
+
+  try {
+    const res = await fetch('/api/recommend-tuned', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: state.currentSeed.id,
+        energy: tunedEnergy,
+        danceability: tunedDance,
+        valence: tunedValence,
+        acousticness: tunedAcoustic,
+        tempo: tunedTempo,
+        n: 15
+      })
+    });
+    if (!res.ok) throw new Error('Tuned recommend failed');
+    const data = await res.json();
+    renderRecommendations(data);
+
+    const badge = document.getElementById('vibeBadge');
+    if (badge) {
+      badge.textContent = 'Custom Vibe Active';
+      badge.classList.add('tuned');
+    }
+    showToast('Applied custom vibe vector weights!');
+  } catch (err) {
+    console.error('Error applying vibe tuning:', err);
+    showToast('Failed to apply custom vibe weights.');
+  }
+}
+
+function resetVibeTuner() {
+  if (state.currentSeed) {
+    initVibeTuner(state.currentSeed);
+    recommendById(state.currentSeed.id);
+    showToast('Reset vector weights to seed track.');
+  }
+}
+
+/* ==========================================================================
+   FEATURE 3: OFFICIAL SPOTIFY MINI-PLAYER EMBED DOCK
+   ========================================================================== */
+function openSpotifyEmbed(trackId) {
+  const dock = document.getElementById('spotifyEmbedDock');
+  const iframe = document.getElementById('spotifyEmbedIframe');
+  if (!dock || !iframe) return;
+
+  iframe.src = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
+  dock.classList.add('open');
+  showToast('Opened official Spotify preview player');
+}
+
+function openSpotifyEmbedForCurrentSeed() {
+  if (state.currentSeed) openSpotifyEmbed(state.currentSeed.id);
+  else if (state.currentTrack) openSpotifyEmbed(state.currentTrack.id);
+}
+
+function closeSpotifyEmbed() {
+  const dock = document.getElementById('spotifyEmbedDock');
+  const iframe = document.getElementById('spotifyEmbedIframe');
+  if (dock) dock.classList.remove('open');
+  if (iframe) iframe.src = '';
+}
+
+function toggleSpotifyEmbed() {
+  const dock = document.getElementById('spotifyEmbedDock');
+  if (!dock) return;
+  if (dock.classList.contains('open')) {
+    closeSpotifyEmbed();
+  } else {
+    const id = state.currentTrack?.id || state.currentSeed?.id || '0VjIjW4GlUZAMYd2vXMi3b';
+    openSpotifyEmbed(id);
+  }
+}
+
+/* ==========================================================================
+   FEATURE 5: PLAYLIST EXPORT (.CSV / SPOTIFY URLS / M3U8)
+   ========================================================================== */
+function toggleExportMenu(type) {
+  const menuId = type === 'blend' ? 'exportMenuBlend' : 'exportMenuRec';
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  menu.classList.toggle('open');
+}
+
+function getExportList(type) {
+  if (type === 'blend') {
+    return state.currentBlendRecommendations || [];
+  }
+  return state.currentRecommendations || [];
+}
+
+function copySpotifyUrls(type) {
+  const list = getExportList(type);
+  if (list.length === 0) {
+    showToast('No recommendations available to export.');
+    return;
+  }
+  const urls = list.map(t => t.spotify_url).join('
+');
+  navigator.clipboard.writeText(urls).then(() => {
+    showToast(`Copied ${list.length} Spotify track URLs to clipboard!`);
+    document.querySelectorAll('.export-menu-dropdown').forEach(m => m.classList.remove('open'));
+  }).catch(() => {
+    showToast('Could not copy to clipboard.');
+  });
+}
+
+function downloadCSV(type) {
+  const list = getExportList(type);
+  if (list.length === 0) {
+    showToast('No recommendations available to export.');
+    return;
+  }
+  let csv = 'Track Name,Artist,Year,Popularity,Similarity Match %,BPM,Spotify URL
+';
+  list.forEach(t => {
+    const row = [
+      `"${t.name.replace(/"/g, '""')}"`,
+      `"${t.artist.replace(/"/g, '""')}"`,
+      t.year,
+      t.popularity,
+      t.match_pct || '',
+      t.tempo || '',
+      t.spotify_url
+    ];
+    csv += row.join(',') + '
+';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Spotify_AI_Recommendations_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Downloaded CSV spreadsheet!');
+  document.querySelectorAll('.export-menu-dropdown').forEach(m => m.classList.remove('open'));
+}
+
+function downloadM3U(type) {
+  const list = getExportList(type);
+  if (list.length === 0) {
+    showToast('No recommendations available to export.');
+    return;
+  }
+  let m3u = '#EXTM3U
+';
+  list.forEach(t => {
+    m3u += `#EXTINF:${t.duration_ms ? Math.round(t.duration_ms / 1000) : 200},${t.artist} - ${t.name}
+`;
+    m3u += `${t.spotify_url}
+`;
+  });
+
+  const blob = new Blob([m3u], { type: 'audio/x-mpegurl;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Spotify_AI_Playlist_${Date.now()}.m3u8`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Downloaded M3U8 playlist file!');
+  document.querySelectorAll('.export-menu-dropdown').forEach(m => m.classList.remove('open'));
+}
+
+/* ==========================================================================
+   TASTE BLEND (MULTI-SEED CENTROID)
+   ========================================================================== */
+function toggleBlendBasket(trackId) {
+  const idx = state.blendBasket.findIndex(t => t.id === trackId);
+  if (idx >= 0) {
+    state.blendBasket.splice(idx, 1);
+    showToast('Removed from Blend basket');
+  } else {
+    if (state.blendBasket.length >= 5) {
+      showToast('Maximum 5 tracks in Blend basket.');
+      return;
+    }
+    findTrackById(trackId).then(track => {
+      if (track) {
+        state.blendBasket.push(track);
+        showToast(`Added "${track.name}" to Blend`);
+        updateBlendUI();
+      }
+    });
+    return;
+  }
+  updateBlendUI();
+}
+
+async function findTrackById(trackId) {
+  let found = state.presets.find(t => t.id === trackId);
+  if (found) return found;
+  if (state.currentRecommendations) {
+    found = state.currentRecommendations.find(t => t.id === trackId);
+    if (found) return found;
+  }
+  if (state.currentSeed && state.currentSeed.id === trackId) return state.currentSeed;
+  try {
+    const res = await fetch(`/api/song/${trackId}`);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+  return null;
+}
+
+function updateBlendUI() {
+  const badge = document.getElementById('blendCountBadge');
+  const sidebarList = document.getElementById('blendBasketList');
+  const btnRun = document.getElementById('btnRunBlend');
+  const btnLarge = document.getElementById('btnExecuteBlendLarge');
+  const countSpan = document.getElementById('blendBasketCount');
+  const container = document.getElementById('blendSeedsContainer');
+
+  const count = state.blendBasket.length;
+  if (badge) badge.textContent = count;
+  if (countSpan) countSpan.textContent = count;
+
+  const canRun = count >= 2;
+  if (btnRun) btnRun.disabled = !canRun;
+  if (btnLarge) btnLarge.disabled = !canRun;
+
+  if (sidebarList) {
+    if (count === 0) {
+      sidebarList.innerHTML = `<div class="basket-empty-msg">Add tracks to blend taste vectors</div>`;
+    } else {
+      sidebarList.innerHTML = '';
+      state.blendBasket.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'basket-item';
+        item.innerHTML = `
+          <div class="basket-item-info">
+            <div class="basket-item-name">${escapeHtml(t.name)}</div>
+            <div class="basket-item-artist">${escapeHtml(t.artist)}</div>
+          </div>
+          <button class="basket-item-remove" onclick="toggleBlendBasket('${t.id}')">✕</button>
+        `;
+        sidebarList.appendChild(item);
+      });
+    }
+  }
+
+  if (container) {
+    if (count === 0) {
+      container.innerHTML = `
+        <div class="empty-blend-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="48" height="48"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <p>Your blend basket is empty.</p>
+          <span>Search for any song or click "+ Blend" on any song card to add seeds here.</span>
+        </div>
+      `;
+    } else {
+      container.innerHTML = '';
+      state.blendBasket.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'basket-item';
+        div.style.padding = '12px 16px';
+        div.innerHTML = `
+          <div class="table-track-cover" style="width: 36px; height: 36px; background: ${t.gradient}; border-radius: 4px;">
+            <svg viewBox="0 0 24 24" fill="#fff" width="16" height="16"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          </div>
+          <div class="basket-item-info">
+            <div class="basket-item-name" style="font-size: 0.95rem;">${escapeHtml(t.name)}</div>
+            <div class="basket-item-artist">${escapeHtml(t.artist)} (${t.year})</div>
+          </div>
+          <button class="basket-item-remove" onclick="toggleBlendBasket('${t.id}')" title="Remove track">✕</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+  }
+}
+
+function clearBlendBasket() {
+  state.blendBasket = [];
+  updateBlendUI();
+  const resultsSec = document.getElementById('blendResultsSection');
+  if (resultsSec) resultsSec.style.display = 'none';
+  showToast('Blend basket cleared');
+}
+
+async function runBlendRecommendation() {
+  if (state.blendBasket.length < 2) {
+    showToast('Add at least 2 tracks to generate a blend.');
+    return;
+  }
+  showToast('Calculating centroid of taste vectors...');
+  try {
+    const ids = state.blendBasket.map(t => t.id);
+    const res = await fetch('/api/blend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ids, n: 15 })
+    });
+    if (!res.ok) throw new Error('Blend failed');
+    const data = await res.json();
+    state.currentBlendRecommendations = data.recommendations;
+    renderBlendResults(data.recommendations);
+    switchView('blend');
+  } catch (err) {
+    console.error('Error running blend:', err);
+    showToast('Failed to compute blended recommendations.');
+  }
+}
+
+function renderBlendResults(recs) {
+  const sec = document.getElementById('blendResultsSection');
+  const tbody = document.getElementById('blendTableBody');
+  if (!sec || !tbody) return;
+  sec.style.display = 'block';
+  tbody.innerHTML = '';
+
+  recs.forEach((track, idx) => {
+    const tr = document.createElement('tr');
+    const vibe = getVibeTag(track);
+    tr.innerHTML = `
+      <td class="td-num">${idx + 1}</td>
+      <td>
+        <div class="table-track-cell">
+          <div class="table-track-cover" style="background: ${track.gradient}" onclick="playSongObject(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(track))}')))">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            <div class="table-track-play-overlay">
+              <svg viewBox="0 0 24 24" fill="#fff" width="18" height="18"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div>
+            <div class="table-track-name" onclick="recommendById('${track.id}')">${escapeHtml(track.name)}</div>
+            <div class="table-track-artist">${escapeHtml(track.artist)} • ${track.year}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="match-bar-wrap">
+          <div class="match-bar-track">
+            <div class="match-bar-fill" style="width: ${track.match_pct}%"></div>
+          </div>
+          <span class="match-pct-text">${track.match_pct}%</span>
+        </div>
+      </td>
+      <td><span class="vibe-tag ${vibe.cls}">${vibe.label}</span></td>
+      <td class="tempo-cell">${track.tempo}</td>
+      <td>
+        <div class="match-bar-wrap">
+          <div class="match-bar-track" style="height: 6px;">
+            <div class="match-bar-fill" style="width: ${track.popularity}%; background: rgba(255,255,255,0.7);"></div>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-subdued);">${track.popularity}</span>
+        </div>
+      </td>
+      <td>
+        <div class="table-actions-cell">
+          <button class="btn-icon-table" onclick="toggleLikeTrack('${track.id}')">
+            <svg viewBox="0 0 24 24" fill="${isLiked(track.id) ? 'var(--spotify-green)' : 'none'}" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+          <button class="btn-icon-table btn-rec-more" onclick="recommendById('${track.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </button>
+          <button class="btn-icon-table" onclick="openSpotifyEmbed('${track.id}')" title="Play official Spotify audio preview">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.306c-.218.358-.684.474-1.042.256-2.855-1.745-6.449-2.14-10.683-1.173-.41.094-.817-.162-.911-.572-.094-.41.162-.817.572-.911 4.636-1.06 8.604-.613 11.808 1.358.358.218.474.684.256 1.042zm1.47-3.266c-.274.446-.86.588-1.306.314-3.268-2.008-8.25-2.59-12.114-1.417-.497.151-1.026-.134-1.177-.631-.151-.497.134-1.026.631-1.177 4.417-1.34 9.907-.687 13.652 1.605.446.274.588.86.314 1.306zm.126-3.41c-3.918-2.327-10.378-2.541-14.11-1.408-.601.182-1.241-.165-1.423-.766-.182-.601.165-1.241.766-1.423 4.29-1.302 11.418-1.052 15.938 1.631.54.32.716 1.023.396 1.563-.32.54-1.023.716-1.563.396z"/></svg>
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function loadBlendPreset(presetType) {
+  const map = {
+    pop_rock: ['0VjIjW4GlUZAMYd2vXMi3b', '4u7EnebtmKWzUH433cf5Qv'],
+    dance_chill: ['2xLMifvAHQIcuKV6v8974V', '1BxfuPKGuaTgP7aM0XbdHN', '2Foc5Q5nqNiosCNqttzNZ8'],
+    high_voltage: ['7szuecWpewWKOC3cCMwtGM', '0t1kP63rueHleOhQkYSXFY', '5ghIJDpPoe3CfHMTe7w1Tk']
+  };
+  const ids = map[presetType] || [];
+  state.blendBasket = [];
+  Promise.all(ids.map(id => findTrackById(id))).then(tracks => {
+    state.blendBasket = tracks.filter(Boolean);
+    updateBlendUI();
+    runBlendRecommendation();
+  });
+}
+
+/* ==========================================================================
+   LIKED SONGS (LOCAL STORAGE)
+   ========================================================================== */
+function loadLikedSongsFromStorage() {
+  try {
+    const raw = localStorage.getItem('spotify_ml_liked_songs');
+    if (raw) state.likedSongs = JSON.parse(raw);
+  } catch (e) {
+    state.likedSongs = [];
+  }
+  updateLikedBadge();
+}
+
+function saveLikedSongsToStorage() {
+  try {
+    localStorage.setItem('spotify_ml_liked_songs', JSON.stringify(state.likedSongs));
+  } catch (e) {}
+  updateLikedBadge();
+}
+
+function isLiked(trackId) {
+  return state.likedSongs.some(t => t.id === trackId);
+}
+
+function toggleLikeTrack(trackId) {
+  const idx = state.likedSongs.findIndex(t => t.id === trackId);
+  if (idx >= 0) {
+    state.likedSongs.splice(idx, 1);
+    showToast('Removed from Liked Songs');
+  } else {
+    findTrackById(trackId).then(track => {
+      if (track) {
+        state.likedSongs.push(track);
+        showToast(`Saved "${track.name}" to Liked Songs`);
+        saveLikedSongsToStorage();
+        if (state.activeView === 'liked') renderLikedGrid();
+        updatePlayerHeart();
+      }
+    });
+    return;
+  }
+  saveLikedSongsToStorage();
+  if (state.activeView === 'liked') renderLikedGrid();
+  updatePlayerHeart();
+}
+
+function toggleLikeCurrent() {
+  if (state.currentTrack) toggleLikeTrack(state.currentTrack.id);
+}
+
+function updateLikedBadge() {
+  const badge = document.getElementById('likedCountBadge');
+  const countText = document.getElementById('likedCountText');
+  const len = state.likedSongs.length;
+  if (badge) badge.textContent = len;
+  if (countText) countText.textContent = `${len} ${len === 1 ? 'song' : 'songs'}`;
+}
+
+function updatePlayerHeart() {
+  const heartBtn = document.getElementById('playerHeartBtn');
+  if (!heartBtn) return;
+  const liked = state.currentTrack && isLiked(state.currentTrack.id);
+  heartBtn.classList.toggle('liked', liked);
+}
+
+function renderLikedGrid() {
+  const grid = document.getElementById('likedGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  if (state.likedSongs.length === 0) {
+    grid.innerHTML = `<div class="basket-empty-msg" style="grid-column: 1/-1; padding: 40px;">No liked songs yet. Click the heart icon on any song to save it!</div>`;
+    return;
+  }
+
+  state.likedSongs.forEach(track => {
+    const card = document.createElement('div');
+    card.className = 'track-card';
+    card.innerHTML = `
+      <div class="card-cover-wrap">
+        <div class="card-cover" style="background: ${track.gradient}">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </div>
+        <button class="floating-play-btn" onclick="event.stopPropagation(); playSongFromCard('${track.id}')">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+      <div class="card-title">${escapeHtml(track.name)}</div>
+      <div class="card-artist">${escapeHtml(track.artist)}</div>
+      <div class="card-footer">
+        <span class="card-year">${track.year}</span>
+        <button class="card-add-blend" onclick="event.stopPropagation(); toggleLikeTrack('${track.id}')" style="color: #ff5555; border-color: rgba(255,85,85,0.4);">Remove</button>
+      </div>
+    `;
+    card.onclick = () => recommendById(track.id);
+    grid.appendChild(card);
+  });
+}
+
+function clearAllLiked() {
+  state.likedSongs = [];
+  saveLikedSongsToStorage();
+  renderLikedGrid();
+  updatePlayerHeart();
+  showToast('Liked songs cleared');
+}
+
+function blendAllLiked() {
+  if (state.likedSongs.length < 2) {
+    showToast('Like at least 2 songs to blend them.');
+    return;
+  }
+  state.blendBasket = state.likedSongs.slice(0, 5);
+  updateBlendUI();
+  switchView('blend');
+  runBlendRecommendation();
+}
+
+/* ==========================================================================
+   FEATURE 4: WEB AUDIO & CANVAS AUDIO SPECTRUM VISUALIZER
+   ========================================================================== */
+function initWebAudio() {
+  if (!state.audioContext) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    state.audioContext = new AudioContext();
+    state.masterGain = state.audioContext.createGain();
+    state.masterGain.gain.value = 0.3;
+
+    // Connect to AnalyserNode for spectrum visualization
+    state.analyser = state.audioContext.createAnalyser();
+    state.analyser.fftSize = 64;
+    state.analyser.smoothingTimeConstant = 0.75;
+
+    state.masterGain.connect(state.analyser);
+    state.analyser.connect(state.audioContext.destination);
+  }
+  if (state.audioContext.state === 'suspended') {
+    state.audioContext.resume();
+  }
+}
+
+function setAudioVolume(val) {
+  if (state.masterGain && state.audioContext) {
+    state.masterGain.gain.setValueAtTime((val / 100) * 0.4, state.audioContext.currentTime);
+  }
+}
+
+function playSongFromCard(trackId) {
+  findTrackById(trackId).then(track => {
+    if (track) playSongObject(track);
+  });
+}
+
+function playSongObject(track) {
+  setPlayerTrack(track, true);
+}
+
+function setPlayerTrack(track, autoPlay = true) {
+  state.currentTrack = track;
+  state.currentTime = 0;
+  state.durationSec = track.duration_ms ? Math.round(track.duration_ms / 1000) : 210;
+
+  const titleEl = document.getElementById('playerTitle');
+  const artistEl = document.getElementById('playerArtist');
+  const coverEl = document.getElementById('playerCover');
+  const timeTotalEl = document.getElementById('timeTotal');
+  const timeCurEl = document.getElementById('timeCurrent');
+  const extBtn = document.getElementById('btnSpotifyExternal');
+
+  if (titleEl) titleEl.textContent = track.name;
+  if (artistEl) artistEl.textContent = track.artist;
+  if (coverEl) coverEl.style.background = track.gradient;
+  if (timeTotalEl) timeTotalEl.textContent = track.duration || '3:30';
+  if (timeCurEl) timeCurEl.textContent = '0:00';
+  if (extBtn) extBtn.href = track.spotify_url;
+
+  updatePlayerProgress();
+  updatePlayerHeart();
+
+  if (autoPlay) {
+    startPlayback();
+  }
+}
+
+function togglePlayPause() {
+  if (state.isPlaying) pausePlayback();
+  else startPlayback();
+}
+
+function startPlayback() {
+  initWebAudio();
+  state.isPlaying = true;
+  updatePlayButtonUI(true);
+
+  // Scrubber timer
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.currentTime += 1;
+    if (state.currentTime >= state.durationSec) {
+      playNext();
+    } else {
+      updatePlayerProgress();
+    }
+  }, 1000);
+
+  startSynthEngine();
+  startCanvasSpectrumLoop();
+}
+
+function pausePlayback() {
+  state.isPlaying = false;
+  updatePlayButtonUI(false);
+  clearInterval(state.timerInterval);
+  clearInterval(state.synthInterval);
+}
+
+function updatePlayButtonUI(playing) {
+  const playIcon = document.getElementById('ctrlPlayIcon');
+  const pauseIcon = document.getElementById('ctrlPauseIcon');
+  if (playIcon) playIcon.style.display = playing ? 'none' : 'block';
+  if (pauseIcon) pauseIcon.style.display = playing ? 'block' : 'none';
+}
+
+function updatePlayerProgress() {
+  const fill = document.getElementById('progressBarFill');
+  const timeCur = document.getElementById('timeCurrent');
+  if (!fill || !timeCur) return;
+
+  const pct = Math.min(100, (state.currentTime / state.durationSec) * 100);
+  fill.style.width = `${pct}%`;
+
+  const m = Math.floor(state.currentTime / 60);
+  const s = state.currentTime % 60;
+  timeCur.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function seekAudio(e) {
+  const container = document.getElementById('progressBarContainer');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+  state.currentTime = Math.round(ratio * state.durationSec);
+  updatePlayerProgress();
+}
+
+function playNext() {
+  if (state.currentRecommendations && state.currentRecommendations.length > 0) {
+    const curIdx = state.currentRecommendations.findIndex(t => t.id === state.currentTrack?.id);
+    const nextIdx = (curIdx + 1) % state.currentRecommendations.length;
+    playSongObject(state.currentRecommendations[nextIdx]);
+  } else if (state.presets.length > 0) {
+    const curIdx = state.presets.findIndex(t => t.id === state.currentTrack?.id);
+    const nextIdx = (curIdx + 1) % state.presets.length;
+    playSongObject(state.presets[nextIdx]);
+  }
+}
+
+function playPrev() {
+  if (state.currentTime > 3) {
+    state.currentTime = 0;
+    updatePlayerProgress();
+    return;
+  }
+  if (state.currentRecommendations && state.currentRecommendations.length > 0) {
+    const curIdx = state.currentRecommendations.findIndex(t => t.id === state.currentTrack?.id);
+    const prevIdx = (curIdx - 1 + state.currentRecommendations.length) % state.currentRecommendations.length;
+    playSongObject(state.currentRecommendations[prevIdx]);
+  }
+}
+
+function toggleShuffle() {
+  const btn = document.getElementById('ctrlShuffle');
+  if (btn) btn.classList.toggle('active');
+  showToast('Shuffle mode toggled');
+}
+
+function toggleRepeat() {
+  const btn = document.getElementById('ctrlRepeat');
+  if (btn) btn.classList.toggle('active');
+  showToast('Repeat mode toggled');
+}
+
+/* ==========================================================================
+   AMBIENT CHORD SYNTHESIZER (WEB AUDIO API)
+   ========================================================================== */
+function startSynthEngine() {
+  clearInterval(state.synthInterval);
+  if (!state.audioContext || !state.masterGain) return;
+
+  const track = state.currentTrack || { tempo: 120, valence: 0.5, energy: 0.5 };
+  const bpm = track.tempo || 120;
+  const beatInterval = (60 / bpm) * 1000;
+
+  const isMajor = track.valence >= 0.5;
+  const scale = isMajor 
+    ? [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]
+    : [220.00, 261.63, 293.66, 329.63, 392.00, 440.00];
+
+  let step = 0;
+
+  const playChordNote = () => {
+    if (!state.isPlaying || !state.audioContext) return;
+    try {
+      const now = state.audioContext.currentTime;
+      const osc = state.audioContext.createOscillator();
+      const gain = state.audioContext.createGain();
+
+      const noteFreq = scale[step % scale.length];
+      osc.type = track.energy > 0.6 ? 'sawtooth' : 'sine';
+      osc.frequency.setValueAtTime(noteFreq, now);
+
+      const filter = state.audioContext.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800 + (track.energy * 1200), now);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (beatInterval / 1000) * 1.5);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(state.masterGain);
+
+      osc.start(now);
+      osc.stop(now + (beatInterval / 1000) * 1.6);
+      step++;
+    } catch (err) {}
+  };
+
+  playChordNote();
+  state.synthInterval = setInterval(playChordNote, beatInterval * 1.25);
+}
+
+/* ==========================================================================
+   FEATURE 4: CANVAS FREQUENCY SPECTRUM VISUALIZER LOOP
+   ========================================================================== */
+function setupCanvasSpectrum() {
+  const canvas = document.getElementById('audioVisualizerCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function startCanvasSpectrumLoop() {
+  if (state.visualizerRunning) return;
+  state.visualizerRunning = true;
+
+  const canvas = document.getElementById('audioVisualizerCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const bufferLength = state.analyser ? state.analyser.frequencyBinCount : 32;
+  const dataArray = new Uint8Array(bufferLength);
+
+  function draw() {
+    if (!state.isPlaying) {
+      // Draw resting flat bars
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = 6;
+      const gap = 3;
+      const totalBars = 12;
+      for (let i = 0; i < totalBars; i++) {
+        const x = i * (barWidth + gap) + 6;
+        ctx.fillStyle = 'rgba(29, 185, 84, 0.25)';
+        ctx.beginPath();
+        ctx.roundRect(x, canvas.height - 4, barWidth, 4, [2, 2, 0, 0]);
+        ctx.fill();
+      }
+      state.visualizerRunning = false;
+      return;
+    }
+
+    requestAnimationFrame(draw);
+
+    if (state.analyser) {
+      state.analyser.getByteFrequencyData(dataArray);
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const totalBars = 12;
+    const barWidth = 6;
+    const gap = 3;
+
+    for (let i = 0; i < totalBars; i++) {
+      const val = dataArray[i * 2] || 0;
+      const barHeight = Math.max(4, (val / 255) * canvas.height * 0.95);
+      const x = i * (barWidth + gap) + 6;
+      const y = canvas.height - barHeight;
+
+      // Gradient from Spotify green to bright cyan
+      const grad = ctx.createLinearGradient(0, y, 0, canvas.height);
+      grad.addColorStop(0, '#1ed760');
+      grad.addColorStop(1, '#00e5ff');
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(x, y, barWidth, barHeight, [2, 2, 0, 0]);
+      ctx.fill();
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
+/* ==========================================================================
+   KEYBOARD SHORTCUTS
+   ========================================================================== */
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+      e.preventDefault();
+      togglePlayPause();
+    }
+    if (e.key === '/' && e.target.tagName !== 'INPUT') {
+      e.preventDefault();
+      focusSearch();
+    }
+    if (e.key === 'Escape') {
+      closeSpotifyEmbed();
+      document.querySelectorAll('.export-menu-dropdown').forEach(m => m.classList.remove('open'));
+    }
+  });
+}
+
+/* ==========================================================================
+   HELPERS & TOAST
+   ========================================================================== */
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
+  }, 3200);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+</script>
+</body>
+</html>

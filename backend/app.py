@@ -1,15 +1,20 @@
 import os
-import json
 import time
 import pandas as pd
 import numpy as np
 import joblib
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, send_file, render_template
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(
+    __name__,
+    static_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static"),
+    template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates"),
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODELS_DIR = os.path.join(BASE_DIR, "models")
+ROOT_DIR = os.path.dirname(BASE_DIR)
+MODELS_DIR = os.path.join(ROOT_DIR, "models")
+TEMPLATE_PATH = os.path.join(ROOT_DIR, "templates", "index.html")
 
 print("Loading dataset and ML models...")
 t0 = time.time()
