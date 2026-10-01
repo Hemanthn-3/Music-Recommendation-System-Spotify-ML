@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
 build/
 dist/
 *.egg-info/
@@ -18,7 +17,6 @@ ENV/
 # Jupyter
 .ipynb_checkpoints/
 profile_default/
-ipynb_checkpoints/
 
 # Testing / coverage
 .pytest_cache/
@@ -36,27 +34,13 @@ desktop.ini
 
 # Logs
 *.log
-npm-debug.log*
-yarn-error.log*
 
-# OS / env
+# Secrets
 .env
 .env.*
 !.env.example
 *.pem
 
-# --- Project-specific: large generated artifacts ---
-# Raw & derived Spotify datasets (regenerate from Kaggle, see README)
-data.csv
-data_by_artist.csv
-data_by_genres.csv
-data_by_year.csv
-data_w_genres.csv
-
-# Large model artifacts (regenerate by running the notebook)
-models/*.pkl
-models/*.csv
-models/*.parquet
-
-# Keep the models directory itself so structure is documented
-!models/.gitkeep
+# Note: data*.csv and models/* are intentionally tracked so the app runs
+# straight after cloning. See README -> Setup if you prefer to rebuild them
+# from the Kaggle dataset with `python prepare_models.py`.

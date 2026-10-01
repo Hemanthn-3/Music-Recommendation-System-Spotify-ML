@@ -1,171 +1,176 @@
-# 🎵 Spotify ML Music Recommendation System
+# Music Recommendation System — Spotify ML
 
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
-[![Spotify](https://img.shields.io/badge/Spotify-1ED760?style=for-the-badge&logo=spotify&logoColor=white)](https://open.spotify.com/)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+A **content-based music recommendation engine** built with scikit-learn and served through a
+Flask REST API with a Spotify-inspired web UI. The model maps every track into a
+**14-dimensional audio-feature space** and finds neighbours with **cosine similarity**
+(k-nearest-neighbours), so recommendations come from how a song *sounds*, not from play counts.
 
-An intelligent, full-stack Machine Learning music recommendation engine built with **Python, Scikit-Learn, Flask, and Vanilla Web Technologies**. The system analyzes acoustic feature profiles across **157,000+ tracks** from Spotify (1921–2020) and uses a **k-Nearest Neighbors (k-NN)** algorithm with **cosine distance** to deliver real-time, high-precision recommendations, multi-track taste blending, interactive parameter fine-tuning, and radar audio visualization.
-
----
-
-## 📸 Key Highlights & Features
-
-- 🎧 **Content-Based Filtering via k-NN**: Computes acoustic similarity in a normalized 14-dimensional feature space using cosine metric for fast sub-second recommendation queries.
-- ⚡ **Real-Time Autocomplete & Search**: Instant substring search across 157,000+ song titles and artists with zero latency.
-- 🎛️ **Interactive Acoustic Vibe Tuner**: Fine-tune recommendations on the fly by adjusting energy, danceability, valence, acousticness, and tempo sliders.
-- 🧬 **Multi-Track Taste Blend**: Select multiple tracks to compute a composite taste vector (centroid embedding) and discover songs that bridge your favorite artists.
-- 📊 **Model Analytics & Radar Charts**: Interactive SVG/Canvas spider radar charts comparing acoustic fingerprints between seed songs and recommendations.
-- 🟢 **Spotify Player Integration & Web Audio**: In-app Spotify mini-player embed dock, track preview audio, dynamic Web Audio API canvas visualizer, and direct Spotify links.
-- 💾 **Liked Songs & Playlist Export**: Save your favorite recommendations locally in browser storage and export as formatted playlists.
-- 🎨 **Modern Spotify-Style UI**: Sleek dark-mode aesthetic with glassmorphism, dynamic color gradients, fluid transitions, and responsive layout.
+- Tracks in the modelling subset: **~157,000**
+- Distance metric: **cosine similarity** (brute force, no giant pairwise matrix)
+- Features: `valence`, `acousticness`, `danceability`, `duration_ms`, `energy`, `explicit`,
+  `instrumentalness`, `key`, `liveness`, `loudness`, `mode`, `popularity`, `speechiness`, `tempo`
 
 ---
 
-## 🧠 Machine Learning Architecture
+## Features
 
-The recommendation engine leverages **Content-Based Filtering** based on Spotify's quantitative audio analysis:
-
-### 1. 14 Acoustic Dimensions
-Each song is characterized by 14 continuous and discrete features:
-- **Valence**: Musical positiveness (happy, cheerful vs. sad, depressed).
-- **Acousticness**: Confidence measure of whether the track is acoustic.
-- **Danceability**: Suitability for dancing based on tempo, rhythm, and beat strength.
-- **Energy**: Perceptual measure of intensity and activity.
-- **Instrumentalness**: Predicts whether a track contains no vocals.
-- **Liveness**: Detects audience presence in the recording.
-- **Loudness**: Overall volume in decibels (dB).
-- **Speechiness**: Presence of spoken words.
-- **Tempo**: Estimated tempo in beats per minute (BPM).
-- **Popularity**: Spotify track popularity metric (0–100).
-- **Duration (ms)**, **Key**, **Mode**, and **Explicit Content**.
-
-### 2. Feature Preprocessing & Scaling
-Because features have vastly different ranges (e.g., `loudness` in negative dB, `tempo` up to 240 BPM, `danceability` from 0.0 to 1.0), all dimensions are normalized using **`StandardScaler`** (`z = (x - u) / s`).
-
-### 3. Cosine Distance Metric
-Similarity between tracks $A$ and $B$ is measured using cosine distance:
-
-$$\text{Cosine Similarity}(A, B) = \frac{A \cdot B}{\|A\| \|B\|}$$
-
-$$\text{Distance} = 1 - \text{Cosine Similarity}$$
-
-Using cosine similarity ensures recommendations are invariant to scale and capture relational acoustic profiles.
+| Capability | Description |
+|---|---|
+| Search | Case-insensitive substring search over track title and artist |
+| Recommendations | Seed any track, get the N nearest neighbours in audio-feature space |
+| Blend | Feed several tracks in, get recommendations from the centroid ("taste vector") |
+| Tuned search | Move energy / danceability / valence / acousticness / tempo sliders away from the seed's real values and re-query |
+| Stats | Total tracks, year range, average popularity, feature list |
+| UI | Responsive dark theme, gradient track cards, match percentage, direct Spotify links |
 
 ---
 
-## 📁 Project Structure
+## Project structure
 
-```plaintext
-Music_Recommendation/
-│
-├── models/                         # Pre-trained ML artifacts & model dataset
-│   ├── df_model.csv                # Optimized lookup table (157k+ songs)
-│   ├── feature_matrix.pkl          # Pre-computed normalized feature matrix
-│   ├── knn_recommender.pkl         # Fitted NearestNeighbors model
-│   └── scaler.pkl                  # Fitted StandardScaler
-│
-├── static/                         # Frontend static assets
-│   ├── css/
-│   │   └── style.css               # Spotify glassmorphism design system
-│   └── js/
-│       └── app.js                  # Frontend client engine, visualizers & player
-│
-├── templates/
-│   └── index.html                  # Main responsive single-page application
-│
-├── app.py                          # Flask REST API & Web Server
-├── music_prediction_system.ipynb   # Data exploration, EDA & model training notebook
-├── data.csv                        # Raw Spotify 157k+ tracks dataset
-├── data_by_artist.csv              # Artist aggregated statistics
-├── data_by_genres.csv              # Genre acoustic statistics
-├── data_by_year.csv                # Yearly acoustic evolution trends
-├── data_w_genres.csv               # Songs with genre annotations
-└── README.md                       # Documentation
+```
+.
+├── app.py                    # Flask API + page serving
+├── prepare_models.py         # Rebuilds models/ from data.csv
+├── requirements.txt
+├── music_prediction_system.ipynb  # Full EDA + modelling notebook
+├── models/                   # Trained artifacts (committed so the app runs after cloning)
+│   ├── df_model.csv
+│   ├── scaler.pkl
+│   ├── feature_matrix.pkl
+│   └── knn_recommender.pkl
+├── static/
+│   ├── css/style.css
+│   └── js/app.js
+└── templates/
+    └── index.html
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## Setup
 
-### Prerequisites
-- Python 3.8, 3.9, 3.10, 3.11, or 3.12
-- `pip` package manager
+**1. Clone and install dependencies**
 
-### 1. Clone the Repository
 ```bash
 git clone https://github.com/Hemanthn-3/Music-Recommendation-System-Spotify-ML.git
 cd Music-Recommendation-System-Spotify-ML
+python -m venv .venv
 ```
 
-### 2. Set Up a Virtual Environment (Recommended)
+Windows:
+
+```powershell
+.venv\Scripts\activate
+```
+
+macOS / Linux:
+
 ```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS / Linux
-python3 -m venv venv
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
-```bash
-pip install flask pandas numpy scikit-learn joblib
-```
-
-*(Or if you prefer requirements file)*:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Run the Application
+**2. Add the dataset**
+
+Download the Spotify dataset (`data.csv` plus the `data_by_*.csv` and `data_w_genres.csv`
+summaries) and place the files in the project root. The dataset files and the trained model
+artifacts are git-ignored because of their size — the notebook and `prepare_models.py`
+regenerate everything you need.
+
+**3. Build the model artifacts**
+
+```bash
+python prepare_models.py
+```
+
+This cleans the data, fits the `StandardScaler` and the cosine k-NN model, and writes the four
+files into `models/` that `app.py` loads at startup.
+
+> You can also run `music_prediction_system.ipynb` top to bottom for the EDA, clustering and
+> t-SNE visualisations before saving the artifacts.
+
+**4. Run the app**
+
 ```bash
 python app.py
 ```
 
-Open your browser and navigate to:
+Open <http://127.0.0.1:5000>
+
+---
+
+## API reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/search?q=<query>&limit=<n>` | Search tracks by title or artist |
+| `GET` | `/api/recommend?id=<track_id>&n=<n>` | Recommend from a single seed track |
+| `GET` | `/api/recommend?name=<title>&artist=<artist>` | Recommend using name / artist instead of an ID |
+| `POST` | `/api/blend` | Body `{"ids": ["<id>", ...], "n": 15}` — blend several tracks |
+| `POST` | `/api/recommend-tuned` | Body `{"id": "<id>", "energy": 0.9, "tempo": 130, ...}` — tuned search |
+| `GET` | `/api/song/<track_id>` | Metadata for one track |
+| `GET` | `/api/presets` | Curated starter tracks shown on the home screen |
+| `GET` | `/api/stats` | Dataset statistics |
+
+Example:
+
+```bash
+curl "http://127.0.0.1:5000/api/recommend?id=0VjIjW4GlUZAMYd2vXMi3b&n=5"
 ```
-http://127.0.0.1:5000
+
+```bash
+curl -X POST "http://127.0.0.1:5000/api/blend" \
+     -H "Content-Type: application/json" \
+     -d '{"ids": ["0VjIjW4GlUZAMYd2vXMi3b", "7qiZfU4dY1lWllzX7mPBI3"], "n": 10}'
 ```
 
 ---
 
-## 📡 REST API Reference
+## How the model works
 
-| Endpoint | Method | Params / Payload | Description |
-| :--- | :---: | :--- | :--- |
-| `/api/search` | `GET` | `?q=<term>&limit=15` | Fast search across song titles and artists |
-| `/api/recommend` | `GET` | `?id=<spotify_id>&n=12` or `?name=<title>&artist=<name>` | Get top $N$ nearest acoustic neighbors |
-| `/api/blend` | `POST` | `{"ids": ["id1", "id2"], "n": 15}` | Blend multiple songs into composite recommendations |
-| `/api/recommend-tuned` | `POST` | `{"id": "...", "energy": 0.8, "danceability": 0.9, ...}` | Generate recommendations with adjusted acoustic dials |
-| `/api/song/<track_id>` | `GET` | `track_id` | Retrieve comprehensive audio profile for a song |
-| `/api/presets` | `GET` | — | Fetch curated list of popular seed tracks across genres |
-| `/api/stats` | `GET` | — | Get dataset summary statistics and feature dimensions |
+1. **Clean** — parse the `artists` list, drop duplicate `(name, artists)` pairs keeping the most
+   popular version, remove clips under 30 seconds.
+2. **Select** — keep rows with no missing values across the 14 audio features.
+3. **Scale** — `StandardScaler` so every dimension contributes equally to the distance.
+4. **Index** — `NearestNeighbors(metric="cosine", algorithm="brute")`. Brute force is used on
+   purpose: a full pairwise matrix for this many tracks would need roughly 200 GB of RAM.
+5. **Query** — `kneighbors()` on the seed's scaled vector; similarity is reported as
+   `1 - cosine_distance`.
+6. **Blend** — average the scaled vectors of several seeds to get one taste centroid, then query
+   with that.
 
----
-
-## 🛠️ Tech Stack
-
-- **Machine Learning & Analytics**: Scikit-Learn (`NearestNeighbors`), NumPy, Pandas, Joblib.
-- **Backend**: Python 3, Flask.
-- **Frontend**: HTML5, Vanilla JavaScript (ES6+), Vanilla CSS (Custom Design System, Glassmorphism, CSS Grid/Flexbox).
-- **Visuals & Audio**: HTML5 Canvas Audio Spectrum, Web Audio API, SVG Radar Charts, Spotify Embed API.
+Tuning sliders work by editing the seed row's raw feature values, scaling the edited vector with
+the same fitted `StandardScaler`, and re-querying — so the user controls the query point without
+retraining anything.
 
 ---
 
-## 🤝 Contributing
+## Tech stack
 
-Contributions, issues, and feature requests are welcome!
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Python · Flask · pandas · NumPy · SciPy · scikit-learn (`StandardScaler`, `NearestNeighbors`,
+`KMeans`, `PCA`, `TSNE`) · joblib · Matplotlib / Seaborn / Plotly · vanilla HTML/CSS/JS
 
 ---
 
-## 📄 License
+## Possible improvements
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+- Hybrid filtering that blends content similarity with collaborative signals.
+- Autoencoders or a learned audio embedding instead of hand-picked features.
+- Live Spotify API integration for real-time popularity and cover art.
+- ANN indexes such as FAISS to trade exactness for sub-linear query time.
+- Recall-based offline evaluation against a held-out interaction dataset.
+
+---
+
+## Notes
+
+- Dataset: public Spotify metadata compilation (Yamaerenay). The app reads local CSV files and
+  makes no Spotify API calls — links to tracks open the public Spotify web player.
+- `.gitignore` excludes datasets and model binaries; regenerate them with `prepare_models.py`.
+
+## License
+
+MIT
