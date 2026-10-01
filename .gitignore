@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+profile_default/
+ipynb_checkpoints/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# OS / env
+.env
+.env.*
+!.env.example
+*.pem
+
+# --- Project-specific: large generated artifacts ---
+# Raw & derived Spotify datasets (regenerate from Kaggle, see README)
+data.csv
+data_by_artist.csv
+data_by_genres.csv
+data_by_year.csv
+data_w_genres.csv
+
+# Large model artifacts (regenerate by running the notebook)
+models/*.pkl
+models/*.csv
+models/*.parquet
+
+# Keep the models directory itself so structure is documented
+!models/.gitkeep
